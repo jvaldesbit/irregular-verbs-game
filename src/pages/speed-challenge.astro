@@ -53,6 +53,19 @@ import Layout from '../layouts/Layout.astro';
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
 
+  const PAIR_COLORS = [
+    ['#6366f1','#4338ca'],
+    ['#f59e0b','#b45309'],
+    ['#06b6d4','#0e7490'],
+    ['#8b5cf6','#6d28d9'],
+    ['#ef4444','#b91c1c'],
+    ['#10b981','#047857'],
+    ['#f97316','#c2410c'],
+    ['#ec4899','#be185d'],
+    ['#84cc16','#4d7c0f'],
+    ['#14b8a6','#0f766e'],
+  ];
+
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
   let gameVerbs: any[] = [];
@@ -156,9 +169,13 @@ import Layout from '../layouts/Layout.astro';
     if (selectedLeft === null || selectedRight === null) return;
     if (selectedLeft === selectedRight) {
       playCorrect();
+      const colorIdx = parseInt(selectedLeft!) % PAIR_COLORS.length;
+      const [c1, c2] = PAIR_COLORS[colorIdx];
       document.querySelectorAll<HTMLButtonElement>(`.vb-btn[data-id="${selectedLeft}"]`).forEach(b => {
         b.classList.remove('selected');
         b.classList.add('matched');
+        b.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
+        b.style.borderColor = 'transparent';
         b.disabled = true;
       });
       matches++;
@@ -405,18 +422,21 @@ import Layout from '../layouts/Layout.astro';
   }
 
   :global(.vb-btn.selected) {
-    background: white;
+    background: #f5576c;
+    color: white;
     border-color: white;
-    box-shadow: 0 0 0 3px rgba(245,87,108,0.5);
-    transform: scale(1.04);
+    box-shadow: 0 0 0 3px white, 0 6px 20px rgba(245,87,108,0.55);
+    transform: scale(1.06);
+    position: relative;
+    z-index: 1;
   }
 
   :global(.vb-btn.matched) {
-    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     border-color: transparent;
     cursor: not-allowed;
-    opacity: 0.85;
+    opacity: 0.92;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
   }
 
   :global(.vb-btn.wrong) {
