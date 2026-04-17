@@ -41,6 +41,25 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </main>
 
+    <!-- Session-end overlay (shown on wrong answer when score > 0) -->
+    <div class="session-overlay" id="sessionOverlay" style="display:none">
+      <div class="session-card">
+        <div class="session-icon">⌨️</div>
+        <h2>Session Over</h2>
+        <p class="session-score">Score: <strong id="sessionScore">0</strong> correct</p>
+        <p class="session-acc">Accuracy: <strong id="sessionAcc">0%</strong></p>
+        <div class="save-record">
+          <p class="save-label">Save your record</p>
+          <div class="save-row">
+            <input type="text" id="tmNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="tmSaveBtn">💾 Save</button>
+          </div>
+          <p class="save-done" id="tmSaveDone" style="display:none">✓ Saved!</p>
+        </div>
+        <button class="continue-btn" id="continueBtn">Continue Playing</button>
+      </div>
+    </div>
+
     <div class="progress-footer">
       <span class="progress-label">
         <span id="progressText">0 answered</span>
@@ -55,6 +74,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
+  import { saveScore, getPlayerName } from '../utils/scores.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -139,7 +159,18 @@ import Layout from '../layouts/Layout.astro';
       fb.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
       fb.className = 'feedback is-wrong';
       input.className = 'answer-input wrong';
-      setTimeout(generateQuestion, 2600);
+      if (score > 0) {
+        const acc = Math.round((correctAnswers / totalAnswered) * 100);
+        (document.getElementById('sessionScore') as HTMLElement).textContent = String(score);
+        (document.getElementById('sessionAcc') as HTMLElement).textContent = acc + '%';
+        (document.getElementById('tmNameInput') as HTMLInputElement).value = getPlayerName();
+        (document.getElementById('tmSaveDone') as HTMLElement).style.display = 'none';
+        (document.getElementById('tmSaveBtn') as HTMLButtonElement).disabled = false;
+        setTimeout(() => (document.getElementById('sessionOverlay') as HTMLElement).style.display = 'flex', 1200);
+      } else {
+        setTimeout(generateQuestion, 2600);
+      }
+      score = 0; correctAnswers = 0; totalAnswered = 0;
     }
 
     updateStats();
@@ -167,6 +198,22 @@ import Layout from '../layouts/Layout.astro';
 
   document.getElementById('skipBtn')!.addEventListener('click', () => {
     totalAnswered++;
+    updateStats();
+    generateQuestion();
+  });
+
+  document.getElementById('tmSaveBtn')!.addEventListener('click', () => {
+    const name = (document.getElementById('tmNameInput') as HTMLInputElement).value.trim();
+    if (!name) return;
+    const savedScore = parseInt((document.getElementById('sessionScore') as HTMLElement).textContent || '0');
+    const acc = (document.getElementById('sessionAcc') as HTMLElement).textContent || '0%';
+    saveScore('type-master', savedScore, `${savedScore} correct · ${acc} acc`, name);
+    (document.getElementById('tmSaveDone') as HTMLElement).style.display = 'block';
+    (document.getElementById('tmSaveBtn') as HTMLButtonElement).disabled = true;
+  });
+
+  document.getElementById('continueBtn')!.addEventListener('click', () => {
+    (document.getElementById('sessionOverlay') as HTMLElement).style.display = 'none';
     updateStats();
     generateQuestion();
   });
@@ -340,6 +387,55 @@ import Layout from '../layouts/Layout.astro';
     color: rgba(255,255,255,0.7);
     white-space: nowrap;
   }
+
+  /* Session overlay */
+  .session-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 1.25rem;
+  }
+
+  .session-card {
+    background: linear-gradient(145deg, #4f46e5, #7c3aed);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-xl);
+    padding: 2rem 1.75rem;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    text-align: center;
+  }
+
+  .session-icon { font-size: 3rem; line-height: 1; }
+  .session-card h2 { font-size: 1.8rem; font-weight: 800; color: white; }
+  .session-score, .session-acc { color: rgba(255,255,255,0.85); font-size: 1.05rem; font-weight: 500; }
+  .session-score strong, .session-acc strong { color: white; font-weight: 800; }
+
+  .continue-btn {
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: var(--r-md);
+    padding: 0.75rem 2rem;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 50px;
+    margin-top: 0.25rem;
+  }
+
+  .continue-btn:hover { background: rgba(255,255,255,0.28); border-color: white; }
 
   @media (min-width: 600px) {
     .top-bar { padding: 1rem 1.75rem; }

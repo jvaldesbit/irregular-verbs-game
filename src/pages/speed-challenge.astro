@@ -43,6 +43,14 @@ import Layout from '../layouts/Layout.astro';
         <h2>Time's Up!</h2>
         <p class="big-result">You matched <strong id="finalScore">0</strong> pairs!</p>
         <p class="best-result">Best: <strong id="bestScore">0</strong></p>
+        <div class="save-record">
+          <p class="save-label">Save your record</p>
+          <div class="save-row">
+            <input type="text" id="scNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="scSaveBtn">💾 Save</button>
+          </div>
+          <p class="save-done" id="scSaveDone" style="display:none">✓ Saved!</p>
+        </div>
         <button class="action-btn btn--pink" id="restartBtn">Play Again</button>
       </div>
     </main>
@@ -52,6 +60,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
+  import { saveScore, getPlayerName } from '../utils/scores.ts';
 
   const PAIR_COLORS = [
     ['#6366f1','#4338ca'],
@@ -205,6 +214,10 @@ import Layout from '../layouts/Layout.astro';
       best = matches;
       localStorage.setItem('sc_best', String(best));
     }
+    // Reset save widget
+    (document.getElementById('scNameInput') as HTMLInputElement).value = getPlayerName();
+    (document.getElementById('scSaveDone') as HTMLElement).style.display = 'none';
+    (document.getElementById('scSaveBtn') as HTMLButtonElement).disabled = false;
     (document.getElementById('gameArea') as HTMLElement).style.display = 'none';
     (document.getElementById('gameOver') as HTMLElement).style.display = 'flex';
     (document.getElementById('finalScore') as HTMLElement).textContent = String(matches);
@@ -212,6 +225,14 @@ import Layout from '../layouts/Layout.astro';
     if (bestEl) bestEl.textContent = String(best);
     (document.getElementById('timer') as HTMLElement).classList.remove('warning');
   }
+
+  document.getElementById('scSaveBtn')!.addEventListener('click', () => {
+    const name = (document.getElementById('scNameInput') as HTMLInputElement).value.trim();
+    if (!name) return;
+    saveScore('speed-challenge', matches, `${matches} pairs in 60s`, name);
+    (document.getElementById('scSaveDone') as HTMLElement).style.display = 'block';
+    (document.getElementById('scSaveBtn') as HTMLButtonElement).disabled = true;
+  });
 
   document.getElementById('startBtn')!.addEventListener('click', startGame);
   document.getElementById('restartBtn')!.addEventListener('click', startGame);

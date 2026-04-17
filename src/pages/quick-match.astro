@@ -14,6 +14,12 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </header>
 
+    <!-- Lives bar -->
+    <div class="lives-bar">
+      <div class="lives-hearts" id="livesHearts"></div>
+      <div class="bonus-msg" id="bonusMsg"></div>
+    </div>
+
     <main class="game-area">
       <div class="question-card">
         <p class="q-label" id="questionLabel">Find the PRESENT form of:</p>
@@ -26,6 +32,29 @@ import Layout from '../layouts/Layout.astro';
       <div class="result-msg" id="resultMessage"></div>
     </main>
 
+    <!-- Game Over panel -->
+    <div class="gameover-overlay" id="gameOverPanel" style="display:none">
+      <div class="gameover-card">
+        <div class="go-icon">💔</div>
+        <h2>Game Over</h2>
+        <p class="go-stat">Score: <strong id="goScore">0</strong></p>
+        <p class="go-stat">Best streak: <strong id="goStreak">0</strong></p>
+        <p class="go-stat">Questions: <strong id="goTotal">0</strong></p>
+        <div class="save-record" id="goSaveWidget">
+          <p class="save-label">Save your record</p>
+          <div class="save-row">
+            <input type="text" id="goNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="goSaveBtn">💾 Save</button>
+          </div>
+          <p class="save-done" id="goSaveDone" style="display:none">✓ Saved!</p>
+        </div>
+        <div class="go-btns">
+          <button class="go-btn go-btn--play" id="goPlayAgain">Play Again</button>
+          <a href="/scores" class="go-btn go-btn--scores">🏆 Records</a>
+        </div>
+      </div>
+    </div>
+
     <div class="page-progress">
       <div class="page-progress-fill" id="progressFill"></div>
     </div>
@@ -35,22 +64,34 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
+  import { saveScore, getPlayerName } from '../utils/scores.ts';
+
+  const MAX_LIVES = 3;
+  const BONUS_EVERY = 10;
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
   let currentVerb: any = null;
   let currentQuestion: any = null;
-  let score = 0;
-  let streak = 0;
-  let totalQuestions = 0;
+  let score = 0, streak = 0, maxStreak = 0, totalQuestions = 0, lives = MAX_LIVES;
   let best = parseInt(localStorage.getItem('qm_best') ?? '0', 10);
 
   function updateBest() {
-    if (score > best) {
-      best = score;
-      localStorage.setItem('qm_best', String(best));
-    }
+    if (score > best) { best = score; localStorage.setItem('qm_best', String(best)); }
     (document.getElementById('best') as HTMLElement).textContent = String(best);
+  }
+
+  function renderLives() {
+    const el = document.getElementById('livesHearts') as HTMLElement;
+    el.innerHTML = Array.from({ length: Math.max(lives, 0) }, () => '<span class="heart">❤️</span>').join('') +
+      Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => '<span class="heart lost">🖤</span>').join('');
+  }
+
+  function showBonus() {
+    const el = document.getElementById('bonusMsg') as HTMLElement;
+    el.textContent = '+1 vida 🎉';
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
   }
 
   async function loadData() {
@@ -91,11 +132,8 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('questionWord') as HTMLElement).textContent = currentVerb[showForm];
 
     const hintEl = document.getElementById('hint') as HTMLElement;
-    if (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish) {
-      hintEl.textContent = `(${currentVerb.spanish})`;
-    } else {
-      hintEl.textContent = '';
-    }
+    hintEl.textContent = (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish)
+      ? `(${currentVerb.spanish})` : '';
 
     generateOptions();
     const msg = document.getElementById('resultMessage') as HTMLElement;
@@ -132,35 +170,286 @@ import Layout from '../layouts/Layout.astro';
     if (selected === currentQuestion.correct) {
       playCorrect();
       btn.classList.add('correct');
-      msg.textContent = '✓ Correct!';
-      msg.className = 'result-msg is-correct';
       score++;
       streak++;
+      if (streak > maxStreak) maxStreak = streak;
+
+      // Bonus life every BONUS_EVERY consecutive correct
+      if (streak % BONUS_EVERY === 0) {
+        lives++;
+        renderLives();
+        showBonus();
+        msg.textContent = `✓ Correct! +1 vida bonus 🎉`;
+        msg.className = 'result-msg is-correct';
+      } else {
+        msg.textContent = `✓ Correct! 🔥 ${streak}`;
+        msg.className = 'result-msg is-correct';
+      }
+
+      (document.getElementById('score') as HTMLElement).textContent = String(score);
+      (document.getElementById('streak') as HTMLElement).textContent = String(streak);
+      updateBest();
+      const acc = (score / totalQuestions) * 100;
+      (document.getElementById('progressFill') as HTMLElement).style.width = acc + '%';
+      setTimeout(generateQuestion, 1400);
+
     } else {
       playWrong();
       btn.classList.add('wrong');
-      msg.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
-      msg.className = 'result-msg is-wrong';
+      allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
+      lives--;
       streak = 0;
-      allBtns.forEach(b => {
-        if (b.textContent === currentQuestion.correct) b.classList.add('correct');
-      });
+      renderLives();
+
+      msg.textContent = `✗ Wrong — ${currentQuestion.correct}`;
+      msg.className = 'result-msg is-wrong';
+      (document.getElementById('streak') as HTMLElement).textContent = '0';
+
+      // Shake the hearts
+      document.getElementById('livesHearts')!.classList.add('shake');
+      setTimeout(() => document.getElementById('livesHearts')!.classList.remove('shake'), 500);
+
+      if (lives <= 0) {
+        setTimeout(gameOver, 1000);
+      } else {
+        (document.getElementById('score') as HTMLElement).textContent = String(score);
+        updateBest();
+        const acc = (score / totalQuestions) * 100;
+        (document.getElementById('progressFill') as HTMLElement).style.width = acc + '%';
+        setTimeout(generateQuestion, 1800);
+      }
     }
-
-    (document.getElementById('score') as HTMLElement).textContent = String(score);
-    (document.getElementById('streak') as HTMLElement).textContent = String(streak);
-    updateBest();
-
-    const accuracy = (score / totalQuestions) * 100;
-    (document.getElementById('progressFill') as HTMLElement).style.width = accuracy + '%';
-
-    setTimeout(generateQuestion, 1800);
   }
 
-  loadData();
+  function gameOver() {
+    (document.getElementById('goScore') as HTMLElement).textContent = String(score);
+    (document.getElementById('goStreak') as HTMLElement).textContent = String(maxStreak);
+    (document.getElementById('goTotal') as HTMLElement).textContent = String(totalQuestions);
+    // Pre-fill name and reset save widget
+    (document.getElementById('goNameInput') as HTMLInputElement).value = getPlayerName();
+    (document.getElementById('goSaveDone') as HTMLElement).style.display = 'none';
+    (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = false;
+    (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'flex';
+  }
+
+  document.getElementById('goSaveBtn')!.addEventListener('click', () => {
+    const name = (document.getElementById('goNameInput') as HTMLInputElement).value.trim();
+    if (!name) return;
+    saveScore('quick-match', score, `${score} pts · ${maxStreak} streak`, name);
+    (document.getElementById('goSaveDone') as HTMLElement).style.display = 'block';
+    (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = true;
+  });
+
+  function init() {
+    score = 0; streak = 0; maxStreak = 0; totalQuestions = 0; lives = MAX_LIVES;
+    best = parseInt(localStorage.getItem('qm_best') ?? '0', 10);
+    (document.getElementById('score') as HTMLElement).textContent = '0';
+    (document.getElementById('streak') as HTMLElement).textContent = '0';
+    (document.getElementById('best') as HTMLElement).textContent = String(best);
+    (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'none';
+    renderLives();
+    if (verbs.length) { generateQuestion(); } else { loadData(); }
+  }
+
+  document.getElementById('goPlayAgain')!.addEventListener('click', init);
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>
+  /* ── Lives bar ── */
+  .lives-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.2rem 1.25rem 0.5rem;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .lives-hearts {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  :global(.heart) { font-size: 1.5rem; transition: transform 0.2s; }
+  :global(.heart.lost) { filter: grayscale(1); opacity: 0.4; }
+
+  :global(.lives-hearts.shake) {
+    animation: shakeH 0.45s ease;
+  }
+
+  @keyframes shakeH {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-6px); }
+    80%      { transform: translateX(6px); }
+  }
+
+  .bonus-msg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    background: #10b981;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--r-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+  }
+
+  :global(.bonus-msg.show) {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* ── Game Over overlay ── */
+  .gameover-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(30, 10, 60, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .gameover-card {
+    background: white;
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: var(--sh-lg);
+  }
+
+  .go-icon { font-size: 3.5rem; line-height: 1; }
+
+  .gameover-card h2 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #1e1b4b;
+    letter-spacing: -0.03em;
+  }
+
+  .go-stat {
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .go-stat strong { color: #1e1b4b; font-weight: 800; font-size: 1.1rem; }
+
+  /* Save record widget */
+  .save-record {
+    width: 100%;
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: var(--r-md);
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .save-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+  }
+
+  .save-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .save-name-input {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.55rem 0.75rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: var(--r-sm);
+    outline: none;
+    color: #1e1b4b;
+    transition: border-color var(--t);
+    min-height: 40px;
+  }
+
+  .save-name-input:focus { border-color: #667eea; }
+
+  .save-record-btn {
+    font-family: var(--font);
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 0.55rem 1rem;
+    border: none;
+    border-radius: var(--r-sm);
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: all var(--t);
+    white-space: nowrap;
+    min-height: 40px;
+  }
+
+  .save-record-btn:hover { background: #4f46e5; }
+  .save-record-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .save-done {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #10b981;
+  }
+
+  .go-btns {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .go-btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all var(--t);
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .go-btn:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+  .go-btn--play   { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+  .go-btn--scores { background: linear-gradient(135deg, #f59e0b, #b45309); color: white; }
+
   .page {
     min-height: 100dvh;
     background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);

@@ -37,6 +37,14 @@ import Layout from '../layouts/Layout.astro';
         <div class="panel-icon">🎉</div>
         <h2>Congratulations!</h2>
         <p class="big-result">Completed in <strong id="finalMoves">0</strong> moves!</p>
+        <div class="save-record">
+          <p class="save-label">Save your record</p>
+          <div class="save-row">
+            <input type="text" id="mcNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="mcSaveBtn">💾 Save</button>
+          </div>
+          <p class="save-done" id="mcSaveDone" style="display:none">✓ Saved!</p>
+        </div>
         <button class="action-btn btn--cyan" id="restartBtn">Play Again</button>
       </div>
     </main>
@@ -46,6 +54,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
+  import { saveScore, getPlayerName } from '../utils/scores.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -160,10 +169,22 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function endGame() {
+    // Reset save widget
+    (document.getElementById('mcNameInput') as HTMLInputElement).value = getPlayerName();
+    (document.getElementById('mcSaveDone') as HTMLElement).style.display = 'none';
+    (document.getElementById('mcSaveBtn') as HTMLButtonElement).disabled = false;
     (document.getElementById('cardsGrid') as HTMLElement).style.display = 'none';
     (document.getElementById('gameOver') as HTMLElement).style.display = 'flex';
     (document.getElementById('finalMoves') as HTMLElement).textContent = String(moves);
   }
+
+  document.getElementById('mcSaveBtn')!.addEventListener('click', () => {
+    const name = (document.getElementById('mcNameInput') as HTMLInputElement).value.trim();
+    if (!name) return;
+    saveScore('memory-cards', totalPairs * 1000 - moves, `${totalPairs} pairs in ${moves} moves`, name);
+    (document.getElementById('mcSaveDone') as HTMLElement).style.display = 'block';
+    (document.getElementById('mcSaveBtn') as HTMLButtonElement).disabled = true;
+  });
 
   document.querySelectorAll<HTMLButtonElement>('.diff-btn').forEach(btn => {
     btn.addEventListener('click', () => startGame(parseInt(btn.dataset.pairs!)));

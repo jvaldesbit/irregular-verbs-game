@@ -41,13 +41,11 @@ import Layout from '../layouts/Layout.astro';
         <p>At your own pace</p>
       </a>
 
-      <a href="/settings" class="card card--settings">
-        <span class="card-icon">⚙️</span>
-        <h2>Settings</h2>
-        <p>Configure forms</p>
+      <a href="/scores" class="card card--gold">
+        <span class="card-icon">🏆</span>
+        <h2>Records</h2>
+        <p>Your best scores</p>
       </a>
-    </main>
-
     </main>
   </div>
 </Layout>
@@ -136,7 +134,7 @@ import Layout from '../layouts/Layout.astro';
   .card--indigo  { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
   .card--cyan    { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
   .card--green   { background: linear-gradient(135deg, #10b981, #059669); }
-  .card--settings { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+  .card--gold { background: linear-gradient(135deg, #f59e0b, #b45309); }
 
   @media (min-width: 600px) {
     .grid { grid-template-columns: repeat(3, 1fr); max-width: 860px; }

@@ -14,6 +14,16 @@ import Layout from '../layouts/Layout.astro';
       <div class="settings-layout">
         <!-- Main card -->
         <div class="card">
+          <h2>👤 Player Name</h2>
+          <p class="desc">Your name appears on the records board.</p>
+          <div class="name-row">
+            <input type="text" id="playerName" class="name-input" placeholder="Enter your name..." maxlength="24" autocomplete="off">
+            <button type="button" class="save-name-btn" id="saveNameBtn">Save</button>
+          </div>
+          <div class="msg success" id="msgNameOk" style="display:none">✓ Name saved!</div>
+
+          <div class="section-divider"></div>
+
           <h2>Verb Forms to Learn</h2>
           <p class="desc">Select at least 2 forms for games to work.</p>
 
@@ -100,6 +110,18 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+
+  // Player name
+  const nameInput = document.getElementById('playerName') as HTMLInputElement;
+  nameInput.value = localStorage.getItem('verbGamePlayerName') || '';
+  document.getElementById('saveNameBtn')!.addEventListener('click', () => {
+    const v = nameInput.value.trim();
+    if (!v) return;
+    localStorage.setItem('verbGamePlayerName', v);
+    const ok = document.getElementById('msgNameOk') as HTMLElement;
+    ok.style.display = 'block';
+    setTimeout(() => ok.style.display = 'none', 2500);
+  });
 
   function syncCheckboxes() {
     (document.getElementById('chkPresent') as HTMLInputElement).checked = settings.forms.present;
@@ -297,6 +319,48 @@ import Layout from '../layouts/Layout.astro';
     gap: 0.75rem;
     margin-top: 1.25rem;
   }
+
+  /* Player name row */
+  .name-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .name-input {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.8rem 1rem;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.15);
+    color: white;
+    outline: none;
+    min-height: 50px;
+    transition: border-color var(--t);
+  }
+
+  .name-input::placeholder { color: rgba(255,255,255,0.45); }
+  .name-input:focus { border-color: rgba(255,255,255,0.75); }
+
+  .save-name-btn {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.8rem 1.25rem;
+    border: none;
+    border-radius: var(--r-md);
+    background: white;
+    color: #d97706;
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 50px;
+    white-space: nowrap;
+  }
+
+  .save-name-btn:hover { transform: translateY(-2px); box-shadow: var(--sh-sm); }
 
   .save-btn, .reset-btn {
     flex: 1;

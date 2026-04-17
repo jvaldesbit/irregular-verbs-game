@@ -75,6 +75,14 @@ import Layout from '../layouts/Layout.astro';
             <strong class="qs-val" id="quizAcc">—</strong>
           </div>
         </div>
+        <div class="save-record" id="quizSaveWidget">
+          <p class="save-label">Save your record</p>
+          <div class="save-row">
+            <input type="text" id="prNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="prSaveBtn">💾 Save</button>
+          </div>
+          <p class="save-done" id="prSaveDone" style="display:none">✓ Saved!</p>
+        </div>
       </div>
     </main>
   </div>
@@ -83,6 +91,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
+  import { saveScore, getPlayerName } from '../utils/scores.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -144,6 +153,11 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('quizView') as HTMLElement).style.display = quiz ? 'flex' : 'none';
     (document.getElementById('btnBrowse') as HTMLElement).classList.toggle('active', !quiz);
     (document.getElementById('btnQuiz') as HTMLElement).classList.toggle('active', quiz);
+    if (quiz) {
+      (document.getElementById('prNameInput') as HTMLInputElement).value = getPlayerName();
+      (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
+      (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
+    }
     showVerb();
   }
 
@@ -168,8 +182,28 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('revealArea') as HTMLElement).style.display = 'none';
   });
 
-  document.getElementById('correctBtn')!.addEventListener('click', () => { playCorrect(); rightCount++; updateQuizStats(); nextVerb(); });
-  document.getElementById('wrongBtn')!.addEventListener('click', () => { playWrong(); wrongCount++; updateQuizStats(); nextVerb(); });
+  document.getElementById('correctBtn')!.addEventListener('click', () => {
+    playCorrect(); rightCount++; updateQuizStats();
+    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
+    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
+    nextVerb();
+  });
+  document.getElementById('wrongBtn')!.addEventListener('click', () => {
+    playWrong(); wrongCount++; updateQuizStats();
+    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
+    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
+    nextVerb();
+  });
+
+  document.getElementById('prSaveBtn')!.addEventListener('click', () => {
+    const name = (document.getElementById('prNameInput') as HTMLInputElement).value.trim();
+    const total = rightCount + wrongCount;
+    if (!name || total === 0) return;
+    const acc = Math.round((rightCount / total) * 100);
+    saveScore('practice', acc, `${acc}% acc · ${rightCount}/${total} correct`, name);
+    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'block';
+    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = true;
+  });
 
   document.addEventListener('keydown', e => {
     if (!isQuiz) {
@@ -418,6 +452,12 @@ import Layout from '../layouts/Layout.astro';
   .fb-btn:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
   .fb-wrong   { background: #ef4444; color: white; }
   .fb-correct { background: #10b981; color: white; }
+
+  #quizSaveWidget {
+    width: 100%;
+    max-width: 400px;
+    align-self: center;
+  }
 
   /* Quiz stats */
   .quiz-stats {
