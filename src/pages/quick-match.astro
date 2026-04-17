@@ -10,24 +10,51 @@ import Layout from '../layouts/Layout.astro';
         <h1>🎯 Quick Match</h1>
         <div class="top-spacer"></div>
       </div>
-      <div class="stats">
-        <div class="stat-badge">Score <strong id="score">0</strong></div>
-        <div class="stat-badge">🔥 <strong id="streak">0</strong></div>
-        <div class="stat-badge best-badge">Best <strong id="best">0</strong></div>
+      <div class="stats" id="statsRow">
+        <div class="stat-badge" id="scoreBadge">Score <strong id="score">0</strong></div>
+        <div class="stat-badge" id="streakBadge">🔥 <strong id="streak">0</strong></div>
+        <div class="stat-badge" id="timerBadge" style="display:none">⏱️ <strong id="timerDisplay">5:00</strong></div>
+        <div class="stat-badge best-badge" id="bestBadge">Best <strong id="best">0</strong></div>
       </div>
     </header>
 
     <!-- Lives bar -->
-    <div class="lives-bar">
+    <div class="lives-bar" id="livesBar">
       <div class="lives-hearts" id="livesHearts"></div>
       <div class="bonus-msg" id="bonusMsg"></div>
     </div>
 
-    <main class="game-area">
+    <!-- Mode selector overlay -->
+    <div class="mode-select" id="modeSelect">
+      <p class="mode-title">Choose a mode</p>
+      <div class="mode-cards">
+        <button class="mode-card" data-mode="endless">
+          <span class="mode-icon">♾️</span>
+          <strong>Endless</strong>
+          <span>No lives · No timer<br>Score forever</span>
+        </button>
+        <button class="mode-card" data-mode="survival">
+          <span class="mode-icon">❤️</span>
+          <strong>Survival</strong>
+          <span>3 lives · +1 every<br>10 streak</span>
+        </button>
+        <button class="mode-card" data-mode="rush">
+          <span class="mode-icon">⏱️</span>
+          <strong>Rush</strong>
+          <span>Timer per question<br>5 min → 10 sec</span>
+        </button>
+      </div>
+    </div>
+
+    <main class="game-area" id="gameArea" style="display:none">
       <div class="question-card">
         <p class="q-label" id="questionLabel">Find the PRESENT form of:</p>
         <p class="q-word" id="questionWord">—</p>
         <p class="q-hint" id="hint"></p>
+        <!-- Rush timer bar -->
+        <div class="timer-bar-wrap" id="timerBarWrap" style="display:none">
+          <div class="timer-bar" id="timerBar"></div>
+        </div>
       </div>
 
       <div class="options-grid" id="optionsGrid"></div>
@@ -38,8 +65,8 @@ import Layout from '../layouts/Layout.astro';
     <!-- Game Over panel -->
     <div class="gameover-overlay" id="gameOverPanel" style="display:none">
       <div class="gameover-card">
-        <div class="go-icon">💔</div>
-        <h2>Game Over</h2>
+        <div class="go-icon" id="goIcon">💔</div>
+        <h2 id="goTitle">Game Over</h2>
         <p class="go-stat">Score: <strong id="goScore">0</strong></p>
         <p class="go-stat">Best streak: <strong id="goStreak">0</strong></p>
         <p class="go-stat">Questions: <strong id="goTotal">0</strong></p>
@@ -53,6 +80,7 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div class="go-btns">
           <button class="go-btn go-btn--play" id="goPlayAgain">Play Again</button>
+          <button class="go-btn go-btn--change" id="goChangeMode">Change Mode</button>
           <a href="/scores" class="go-btn go-btn--scores">🏆 Records</a>
         </div>
       </div>
@@ -69,24 +97,40 @@ import Layout from '../layouts/Layout.astro';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
 
+  // Rush: time per question in seconds per level (every 10 correct = next level)
+  const RUSH_TIMES = [300, 240, 180, 120, 90, 60, 45, 30, 20, 15, 10];
   const MAX_LIVES = 3;
   const BONUS_EVERY = 10;
+
+  type GameMode = 'endless' | 'survival' | 'rush';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
   let currentVerb: any = null;
   let currentQuestion: any = null;
+  let gameMode: GameMode = 'survival';
+
   let score = 0, streak = 0, maxStreak = 0, totalQuestions = 0, lives = MAX_LIVES;
-  let best = parseInt(localStorage.getItem('qm_best') ?? '0', 10);
+  let best = 0;
+
+  // Rush timer state
+  let rushTimer: ReturnType<typeof setInterval> | null = null;
+  let rushSecondsLeft = 300;
+  let rushTotalSeconds = 300;
+
+  // ── Best score key per mode ──
+  function bestKey() { return `qm_best_${gameMode}`; }
 
   function updateBest() {
-    if (score > best) { best = score; localStorage.setItem('qm_best', String(best)); }
+    if (score > best) { best = score; localStorage.setItem(bestKey(), String(best)); }
     (document.getElementById('best') as HTMLElement).textContent = String(best);
   }
 
+  // ── Lives ──
   function renderLives() {
     const el = document.getElementById('livesHearts') as HTMLElement;
-    el.innerHTML = Array.from({ length: Math.max(lives, 0) }, () => '<span class="heart">❤️</span>').join('') +
+    el.innerHTML =
+      Array.from({ length: Math.max(lives, 0) }, () => '<span class="heart">❤️</span>').join('') +
       Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => '<span class="heart lost">🖤</span>').join('');
   }
 
@@ -97,10 +141,100 @@ import Layout from '../layouts/Layout.astro';
     setTimeout(() => el.classList.remove('show'), 2000);
   }
 
+  // ── Rush timer ──
+  function getRushTimeForLevel(): number {
+    const level = Math.min(Math.floor(score / 10), RUSH_TIMES.length - 1);
+    return RUSH_TIMES[level];
+  }
+
+  function formatTime(s: number): string {
+    if (s >= 60) return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    return `${s}s`;
+  }
+
+  function startRushTimer() {
+    stopRushTimer();
+    rushTotalSeconds = getRushTimeForLevel();
+    rushSecondsLeft = rushTotalSeconds;
+    updateTimerUI();
+
+    rushTimer = setInterval(() => {
+      rushSecondsLeft--;
+      updateTimerUI();
+      if (rushSecondsLeft <= 0) {
+        stopRushTimer();
+        onTimerExpired();
+      }
+    }, 1000);
+  }
+
+  function stopRushTimer() {
+    if (rushTimer !== null) { clearInterval(rushTimer); rushTimer = null; }
+  }
+
+  function updateTimerUI() {
+    const pct = rushSecondsLeft / rushTotalSeconds;
+    const bar = document.getElementById('timerBar') as HTMLElement;
+    const display = document.getElementById('timerDisplay') as HTMLElement;
+
+    display.textContent = formatTime(rushSecondsLeft);
+    bar.style.width = (pct * 100) + '%';
+
+    // Color transitions
+    bar.className = 'timer-bar';
+    if (pct <= 0.15) bar.classList.add('danger');
+    else if (pct <= 0.35) bar.classList.add('warning');
+
+    // Pulse urgency on badge
+    const badge = document.getElementById('timerBadge') as HTMLElement;
+    badge.className = 'stat-badge';
+    if (pct <= 0.15) badge.classList.add('timer-danger');
+    else if (pct <= 0.35) badge.classList.add('timer-warning');
+  }
+
+  function onTimerExpired() {
+    const allBtns = document.querySelectorAll<HTMLButtonElement>('.opt-btn');
+    allBtns.forEach(b => b.disabled = true);
+    allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
+
+    const msg = document.getElementById('resultMessage') as HTMLElement;
+    msg.textContent = `⏰ Time's up! — ${currentQuestion.correct}`;
+    msg.className = 'result-msg is-wrong';
+
+    playWrong();
+    lives--;
+    streak = 0;
+    renderLives();
+    (document.getElementById('streak') as HTMLElement).textContent = '0';
+    document.getElementById('livesHearts')!.classList.add('shake');
+    setTimeout(() => document.getElementById('livesHearts')!.classList.remove('shake'), 500);
+
+    if (lives <= 0) {
+      setTimeout(gameOver, 1000);
+    } else {
+      setTimeout(generateQuestion, 1800);
+    }
+  }
+
+  // ── Setup UI per mode ──
+  function applyModeUI() {
+    const livesBar   = document.getElementById('livesBar') as HTMLElement;
+    const timerBadge = document.getElementById('timerBadge') as HTMLElement;
+    const streakBadge = document.getElementById('streakBadge') as HTMLElement;
+    const bestBadge  = document.getElementById('bestBadge') as HTMLElement;
+    const timerWrap  = document.getElementById('timerBarWrap') as HTMLElement;
+
+    livesBar.style.display   = gameMode === 'endless' ? 'none' : '';
+    timerBadge.style.display = gameMode === 'rush' ? '' : 'none';
+    timerWrap.style.display  = gameMode === 'rush' ? '' : 'none';
+    bestBadge.style.display  = gameMode === 'endless' ? 'none' : '';
+    streakBadge.style.display = '';
+  }
+
+  // ── Data loading ──
   async function loadData() {
     try {
       ({ verbs, settings } = await fetchData());
-      (document.getElementById('best') as HTMLElement).textContent = String(best);
       generateQuestion();
     } catch (e) { console.error('loadData error:', e); }
   }
@@ -142,6 +276,8 @@ import Layout from '../layouts/Layout.astro';
     const msg = document.getElementById('resultMessage') as HTMLElement;
     msg.textContent = '';
     msg.className = 'result-msg';
+
+    if (gameMode === 'rush') startRushTimer();
   }
 
   function generateOptions() {
@@ -164,6 +300,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function checkAnswer(selected: string, btn: HTMLButtonElement) {
+    if (gameMode === 'rush') stopRushTimer();
     totalQuestions++;
     const allBtns = document.querySelectorAll<HTMLButtonElement>('.opt-btn');
     allBtns.forEach(b => b.disabled = true);
@@ -177,17 +314,17 @@ import Layout from '../layouts/Layout.astro';
       streak++;
       if (streak > maxStreak) maxStreak = streak;
 
-      // Bonus life every BONUS_EVERY consecutive correct
-      if (streak % BONUS_EVERY === 0) {
+      if (gameMode !== 'endless' && streak % BONUS_EVERY === 0) {
         lives++;
         renderLives();
         showBonus();
         msg.textContent = `✓ Correct! +1 vida bonus 🎉`;
-        msg.className = 'result-msg is-correct';
       } else {
-        msg.textContent = `✓ Correct! 🔥 ${streak}`;
-        msg.className = 'result-msg is-correct';
+        msg.textContent = gameMode === 'rush'
+          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())} ⏱️`
+          : `✓ Correct! 🔥 ${streak}`;
       }
+      msg.className = 'result-msg is-correct';
 
       (document.getElementById('score') as HTMLElement).textContent = String(score);
       (document.getElementById('streak') as HTMLElement).textContent = String(streak);
@@ -200,27 +337,29 @@ import Layout from '../layouts/Layout.astro';
       playWrong();
       btn.classList.add('wrong');
       allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
-      lives--;
-      streak = 0;
-      renderLives();
 
       msg.textContent = `✗ Wrong — ${currentQuestion.correct}`;
       msg.className = 'result-msg is-wrong';
       (document.getElementById('streak') as HTMLElement).textContent = '0';
+      streak = 0;
 
-      // Shake the hearts
-      document.getElementById('livesHearts')!.classList.add('shake');
-      setTimeout(() => document.getElementById('livesHearts')!.classList.remove('shake'), 500);
+      if (gameMode !== 'endless') {
+        lives--;
+        renderLives();
+        document.getElementById('livesHearts')!.classList.add('shake');
+        setTimeout(() => document.getElementById('livesHearts')!.classList.remove('shake'), 500);
 
-      if (lives <= 0) {
-        setTimeout(gameOver, 1000);
-      } else {
-        (document.getElementById('score') as HTMLElement).textContent = String(score);
-        updateBest();
-        const acc = (score / totalQuestions) * 100;
-        (document.getElementById('progressFill') as HTMLElement).style.width = acc + '%';
-        setTimeout(generateQuestion, 1800);
+        if (lives <= 0) {
+          setTimeout(gameOver, 1000);
+          return;
+        }
       }
+
+      (document.getElementById('score') as HTMLElement).textContent = String(score);
+      updateBest();
+      const acc = (score / totalQuestions) * 100;
+      (document.getElementById('progressFill') as HTMLElement).style.width = acc + '%';
+      setTimeout(generateQuestion, 1800);
     }
   }
 
@@ -228,7 +367,12 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('goScore') as HTMLElement).textContent = String(score);
     (document.getElementById('goStreak') as HTMLElement).textContent = String(maxStreak);
     (document.getElementById('goTotal') as HTMLElement).textContent = String(totalQuestions);
-    // Pre-fill name and reset save widget
+
+    const icons: Record<GameMode, string> = { endless: '🏁', survival: '💔', rush: '⏰' };
+    const titles: Record<GameMode, string> = { endless: 'Session ended', survival: 'Game Over', rush: 'Time\'s up!' };
+    (document.getElementById('goIcon') as HTMLElement).textContent = icons[gameMode];
+    (document.getElementById('goTitle') as HTMLElement).textContent = titles[gameMode];
+
     (document.getElementById('goNameInput') as HTMLInputElement).value = getPlayerName();
     (document.getElementById('goSaveDone') as HTMLElement).style.display = 'none';
     (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = false;
@@ -238,23 +382,53 @@ import Layout from '../layouts/Layout.astro';
   document.getElementById('goSaveBtn')!.addEventListener('click', () => {
     const name = (document.getElementById('goNameInput') as HTMLInputElement).value.trim();
     if (!name) return;
-    saveScore('quick-match', score, `${score} pts · ${maxStreak} streak`, name);
+    const modeLabel = gameMode === 'rush' ? 'rush' : gameMode === 'endless' ? 'endless' : 'quick-match';
+    saveScore(modeLabel, score, `${score} pts · ${maxStreak} streak`, name);
     (document.getElementById('goSaveDone') as HTMLElement).style.display = 'block';
     (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = true;
   });
 
-  function init() {
-    score = 0; streak = 0; maxStreak = 0; totalQuestions = 0; lives = MAX_LIVES;
-    best = parseInt(localStorage.getItem('qm_best') ?? '0', 10);
+  function startGame(mode: GameMode) {
+    gameMode = mode;
+    best = parseInt(localStorage.getItem(bestKey()) ?? '0', 10);
+    score = 0; streak = 0; maxStreak = 0; totalQuestions = 0;
+    lives = MAX_LIVES;
+
     (document.getElementById('score') as HTMLElement).textContent = '0';
     (document.getElementById('streak') as HTMLElement).textContent = '0';
     (document.getElementById('best') as HTMLElement).textContent = String(best);
+    (document.getElementById('progressFill') as HTMLElement).style.width = '0%';
     (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'none';
-    renderLives();
+    (document.getElementById('modeSelect') as HTMLElement).style.display = 'none';
+    (document.getElementById('gameArea') as HTMLElement).style.display = 'flex';
+
+    applyModeUI();
+    if (gameMode !== 'endless') renderLives();
+
     if (verbs.length) { generateQuestion(); } else { loadData(); }
   }
 
-  document.getElementById('goPlayAgain')!.addEventListener('click', init);
+  function showModeSelect() {
+    stopRushTimer();
+    (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'none';
+    (document.getElementById('gameArea') as HTMLElement).style.display = 'none';
+    (document.getElementById('modeSelect') as HTMLElement).style.display = 'flex';
+  }
+
+  // Mode card buttons
+  document.querySelectorAll<HTMLButtonElement>('.mode-card').forEach(btn => {
+    btn.addEventListener('click', () => startGame(btn.dataset.mode as GameMode));
+  });
+
+  document.getElementById('goPlayAgain')!.addEventListener('click', () => startGame(gameMode));
+  document.getElementById('goChangeMode')!.addEventListener('click', showModeSelect);
+
+  function init() {
+    stopRushTimer();
+    showModeSelect();
+    if (!verbs.length) loadData();
+  }
+
   document.addEventListener('astro:page-load', init);
   init();
 </script>
@@ -314,6 +488,113 @@ import Layout from '../layouts/Layout.astro';
     transform: translate(-50%, -50%) scale(1);
   }
 
+  /* ── Mode selector ── */
+  .mode-select {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .mode-title {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .mode-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .mode-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    background: rgba(255,255,255,0.14);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    border-radius: var(--r-lg);
+    cursor: pointer;
+    text-align: left;
+    color: white;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mode-card:hover {
+    background: rgba(255,255,255,0.24);
+    border-color: rgba(255,255,255,0.5);
+    transform: translateY(-2px);
+  }
+
+  .mode-card:active { transform: scale(0.98); }
+
+  .mode-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+
+  .mode-card strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin-bottom: 0.15rem;
+  }
+
+  .mode-card span {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.72);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* ── Timer bar ── */
+  .timer-bar-wrap {
+    margin-top: 1rem;
+    height: 6px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 3px;
+    transition: width 0.9s linear, background 0.4s ease;
+  }
+
+  .timer-bar.warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  }
+
+  .timer-bar.danger {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    animation: timerPulse 0.6s ease infinite alternate;
+  }
+
+  @keyframes timerPulse {
+    from { opacity: 0.7; }
+    to   { opacity: 1; }
+  }
+
+  /* Timer badge urgency */
+  :global(.stat-badge.timer-warning) {
+    background: rgba(245,158,11,0.35) !important;
+  }
+  :global(.stat-badge.timer-danger) {
+    background: rgba(239,68,68,0.45) !important;
+    animation: timerPulse 0.6s ease infinite alternate;
+  }
+
   /* ── Game Over overlay ── */
   .gameover-overlay {
     position: fixed;
@@ -359,7 +640,6 @@ import Layout from '../layouts/Layout.astro';
 
   .go-stat strong { color: #1e1b4b; font-weight: 800; font-size: 1.1rem; }
 
-  /* Save record widget */
   .save-record {
     width: 100%;
     background: #f9fafb;
@@ -379,10 +659,7 @@ import Layout from '../layouts/Layout.astro';
     color: #9ca3af;
   }
 
-  .save-row {
-    display: flex;
-    gap: 0.5rem;
-  }
+  .save-row { display: flex; gap: 0.5rem; }
 
   .save-name-input {
     flex: 1;
@@ -418,32 +695,30 @@ import Layout from '../layouts/Layout.astro';
   .save-record-btn:hover { background: #4f46e5; }
   .save-record-btn:disabled { opacity: 0.5; cursor: default; }
 
-  .save-done {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #10b981;
-  }
+  .save-done { font-size: 0.85rem; font-weight: 700; color: #10b981; }
 
   .go-btns {
     display: flex;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     width: 100%;
     margin-top: 0.5rem;
   }
 
   .go-btn {
     flex: 1;
+    min-width: 120px;
     font-family: var(--font);
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: 700;
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 0.75rem;
     border: none;
     border-radius: var(--r-md);
     cursor: pointer;
     text-align: center;
     text-decoration: none;
     transition: all var(--t);
-    min-height: 52px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -451,6 +726,7 @@ import Layout from '../layouts/Layout.astro';
 
   .go-btn:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
   .go-btn--play   { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+  .go-btn--change { background: #f3f4f6; color: #374151; }
   .go-btn--scores { background: linear-gradient(135deg, #f59e0b, #b45309); color: white; }
 
   .page {
@@ -654,6 +930,8 @@ import Layout from '../layouts/Layout.astro';
     .q-word { font-size: 4rem; }
     .options-grid { gap: 1rem; }
     :global(.opt-btn) { min-height: 110px; font-size: 1.5rem; }
+    .mode-cards { flex-direction: row; max-width: 600px; }
+    .mode-card { flex-direction: column; text-align: center; flex: 1; }
   }
 
   @media (min-width: 1024px) {
