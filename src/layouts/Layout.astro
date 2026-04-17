@@ -73,6 +73,13 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     </button>
   </div>
 
+  <!-- Fixed footer -->
+  <footer class="site-footer">
+    © <span id="footerYear"></span>
+    <a href="https://jcvb.com.co" target="_blank" rel="noopener noreferrer">Julián Valdés</a>
+    · All rights reserved
+  </footer>
+
   <!-- Backdrop -->
   <div class="fab-backdrop" id="fabBackdrop"></div>
 
@@ -217,6 +224,32 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     html { font-size: 18px; }
   }
 
+  /* ── Fixed footer ── */
+  .site-footer {
+    position: fixed;
+    bottom: 0.6rem;
+    left: 1rem;
+    z-index: 9990;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .site-footer a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    pointer-events: auto;
+    transition: color var(--t);
+  }
+
+  .site-footer a:hover {
+    color: rgba(255,255,255,0.85);
+  }
+
   /* ── FAB Stack ── */
   .fab-stack {
     position: fixed;
@@ -224,8 +257,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     right: 1.25rem;
     z-index: 9999;
     display: flex;
-    flex-direction: column-reverse;
-    gap: 0.55rem;
+    flex-direction: row;
+    gap: 0.5rem;
     align-items: center;
   }
 
@@ -632,6 +665,12 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     }
   }
 
+  function setYear() {
+    const el = document.getElementById('footerYear');
+    if (el) el.textContent = String(new Date().getFullYear());
+  }
+
   initFabs();
-  document.addEventListener('astro:page-load', initFabs);
+  setYear();
+  document.addEventListener('astro:page-load', () => { initFabs(); setYear(); });
 </script>
