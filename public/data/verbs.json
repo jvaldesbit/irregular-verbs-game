@@ -1,0 +1,404 @@
+[
+  {
+    "present": "be",
+    "past": "was/were",
+    "participle": "been",
+    "spanish": "ser/estar"
+  },
+  {
+    "present": "become",
+    "past": "became",
+    "participle": "become",
+    "spanish": "convertirse"
+  },
+  {
+    "present": "begin",
+    "past": "began",
+    "participle": "begun",
+    "spanish": "comenzar"
+  },
+  {
+    "present": "break",
+    "past": "broke",
+    "participle": "broken",
+    "spanish": "romper"
+  },
+  {
+    "present": "bring",
+    "past": "brought",
+    "participle": "brought",
+    "spanish": "traer"
+  },
+  {
+    "present": "build",
+    "past": "built",
+    "participle": "built",
+    "spanish": "construir"
+  },
+  {
+    "present": "buy",
+    "past": "bought",
+    "participle": "bought",
+    "spanish": "comprar"
+  },
+  {
+    "present": "catch",
+    "past": "caught",
+    "participle": "caught",
+    "spanish": "atrapar"
+  },
+  {
+    "present": "choose",
+    "past": "chose",
+    "participle": "chosen",
+    "spanish": "elegir"
+  },
+  {
+    "present": "come",
+    "past": "came",
+    "participle": "come",
+    "spanish": "venir"
+  },
+  {
+    "present": "do",
+    "past": "did",
+    "participle": "done",
+    "spanish": "hacer"
+  },
+  {
+    "present": "draw",
+    "past": "drew",
+    "participle": "drawn",
+    "spanish": "dibujar"
+  },
+  {
+    "present": "drink",
+    "past": "drank",
+    "participle": "drunk",
+    "spanish": "beber"
+  },
+  {
+    "present": "drive",
+    "past": "drove",
+    "participle": "driven",
+    "spanish": "conducir"
+  },
+  {
+    "present": "eat",
+    "past": "ate",
+    "participle": "eaten",
+    "spanish": "comer"
+  },
+  {
+    "present": "fall",
+    "past": "fell",
+    "participle": "fallen",
+    "spanish": "caer"
+  },
+  {
+    "present": "feel",
+    "past": "felt",
+    "participle": "felt",
+    "spanish": "sentir"
+  },
+  {
+    "present": "find",
+    "past": "found",
+    "participle": "found",
+    "spanish": "encontrar"
+  },
+  {
+    "present": "fly",
+    "past": "flew",
+    "participle": "flown",
+    "spanish": "volar"
+  },
+  {
+    "present": "forget",
+    "past": "forgot",
+    "participle": "forgotten",
+    "spanish": "olvidar"
+  },
+  {
+    "present": "get",
+    "past": "got",
+    "participle": "gotten",
+    "spanish": "obtener"
+  },
+  {
+    "present": "give",
+    "past": "gave",
+    "participle": "given",
+    "spanish": "dar"
+  },
+  {
+    "present": "go",
+    "past": "went",
+    "participle": "gone",
+    "spanish": "ir"
+  },
+  {
+    "present": "grow",
+    "past": "grew",
+    "participle": "grown",
+    "spanish": "crecer"
+  },
+  {
+    "present": "have",
+    "past": "had",
+    "participle": "had",
+    "spanish": "tener"
+  },
+  {
+    "present": "hear",
+    "past": "heard",
+    "participle": "heard",
+    "spanish": "oír"
+  },
+  {
+    "present": "hide",
+    "past": "hid",
+    "participle": "hidden",
+    "spanish": "esconder"
+  },
+  {
+    "present": "hit",
+    "past": "hit",
+    "participle": "hit",
+    "spanish": "golpear"
+  },
+  {
+    "present": "hold",
+    "past": "held",
+    "participle": "held",
+    "spanish": "sostener"
+  },
+  {
+    "present": "keep",
+    "past": "kept",
+    "participle": "kept",
+    "spanish": "mantener"
+  },
+  {
+    "present": "know",
+    "past": "knew",
+    "participle": "known",
+    "spanish": "saber/conocer"
+  },
+  {
+    "present": "leave",
+    "past": "left",
+    "participle": "left",
+    "spanish": "dejar/salir"
+  },
+  {
+    "present": "lend",
+    "past": "lent",
+    "participle": "lent",
+    "spanish": "prestar"
+  },
+  {
+    "present": "let",
+    "past": "let",
+    "participle": "let",
+    "spanish": "dejar/permitir"
+  },
+  {
+    "present": "lose",
+    "past": "lost",
+    "participle": "lost",
+    "spanish": "perder"
+  },
+  {
+    "present": "make",
+    "past": "made",
+    "participle": "made",
+    "spanish": "hacer"
+  },
+  {
+    "present": "mean",
+    "past": "meant",
+    "participle": "meant",
+    "spanish": "significar"
+  },
+  {
+    "present": "meet",
+    "past": "met",
+    "participle": "met",
+    "spanish": "conocer/encontrar"
+  },
+  {
+    "present": "pay",
+    "past": "paid",
+    "participle": "paid",
+    "spanish": "pagar"
+  },
+  {
+    "present": "put",
+    "past": "put",
+    "participle": "put",
+    "spanish": "poner"
+  },
+  {
+    "present": "read",
+    "past": "read",
+    "participle": "read",
+    "spanish": "leer"
+  },
+  {
+    "present": "ride",
+    "past": "rode",
+    "participle": "ridden",
+    "spanish": "montar"
+  },
+  {
+    "present": "ring",
+    "past": "rang",
+    "participle": "rung",
+    "spanish": "sonar"
+  },
+  {
+    "present": "rise",
+    "past": "rose",
+    "participle": "risen",
+    "spanish": "levantarse"
+  },
+  {
+    "present": "run",
+    "past": "ran",
+    "participle": "run",
+    "spanish": "correr"
+  },
+  {
+    "present": "say",
+    "past": "said",
+    "participle": "said",
+    "spanish": "decir"
+  },
+  {
+    "present": "see",
+    "past": "saw",
+    "participle": "seen",
+    "spanish": "ver"
+  },
+  {
+    "present": "sell",
+    "past": "sold",
+    "participle": "sold",
+    "spanish": "vender"
+  },
+  {
+    "present": "send",
+    "past": "sent",
+    "participle": "sent",
+    "spanish": "enviar"
+  },
+  {
+    "present": "show",
+    "past": "showed",
+    "participle": "shown",
+    "spanish": "mostrar"
+  },
+  {
+    "present": "sing",
+    "past": "sang",
+    "participle": "sung",
+    "spanish": "cantar"
+  },
+  {
+    "present": "sit",
+    "past": "sat",
+    "participle": "sat",
+    "spanish": "sentarse"
+  },
+  {
+    "present": "sleep",
+    "past": "slept",
+    "participle": "slept",
+    "spanish": "dormir"
+  },
+  {
+    "present": "speak",
+    "past": "spoke",
+    "participle": "spoken",
+    "spanish": "hablar"
+  },
+  {
+    "present": "spend",
+    "past": "spent",
+    "participle": "spent",
+    "spanish": "gastar"
+  },
+  {
+    "present": "stand",
+    "past": "stood",
+    "participle": "stood",
+    "spanish": "pararse"
+  },
+  {
+    "present": "swim",
+    "past": "swam",
+    "participle": "swum",
+    "spanish": "nadar"
+  },
+  {
+    "present": "take",
+    "past": "took",
+    "participle": "taken",
+    "spanish": "tomar"
+  },
+  {
+    "present": "teach",
+    "past": "taught",
+    "participle": "taught",
+    "spanish": "enseñar"
+  },
+  {
+    "present": "tell",
+    "past": "told",
+    "participle": "told",
+    "spanish": "decir/contar"
+  },
+  {
+    "present": "think",
+    "past": "thought",
+    "participle": "thought",
+    "spanish": "pensar"
+  },
+  {
+    "present": "throw",
+    "past": "threw",
+    "participle": "thrown",
+    "spanish": "lanzar"
+  },
+  {
+    "present": "understand",
+    "past": "understood",
+    "participle": "understood",
+    "spanish": "entender"
+  },
+  {
+    "present": "wake",
+    "past": "woke",
+    "participle": "woken",
+    "spanish": "despertar"
+  },
+  {
+    "present": "wear",
+    "past": "wore",
+    "participle": "worn",
+    "spanish": "usar/llevar"
+  },
+  {
+    "present": "win",
+    "past": "won",
+    "participle": "won",
+    "spanish": "ganar"
+  },
+  {
+    "present": "write",
+    "past": "wrote",
+    "participle": "written",
+    "spanish": "escribir"
+  }
+]

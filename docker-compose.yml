@@ -1,0 +1,7 @@
+services:
+  irregular-verbs-game:
+    container_name: irregular-verbs-game
+    build: .
+    ports:
+      - "4322:80"
+    restart: unless-stopped

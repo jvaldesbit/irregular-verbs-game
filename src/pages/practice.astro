@@ -1,0 +1,453 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Practice Mode - Irregular Verbs">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1>♾️ Practice</h1>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btnBrowse">Browse</button>
+        <button class="mode-btn" id="btnQuiz">Quiz</button>
+      </div>
+    </header>
+
+    <main class="game-area">
+      <!-- Browse mode -->
+      <div class="browse-view" id="browseView">
+        <div class="forms-grid" id="formsGrid">
+          <div class="form-tile" id="tilePresent">
+            <span class="form-label">Present</span>
+            <span class="form-value" id="vPresent">—</span>
+          </div>
+          <div class="form-tile" id="tilePast">
+            <span class="form-label">Past</span>
+            <span class="form-value" id="vPast">—</span>
+          </div>
+          <div class="form-tile" id="tileParticiple">
+            <span class="form-label">Participle</span>
+            <span class="form-value" id="vParticiple">—</span>
+          </div>
+          <div class="form-tile" id="tileSpanish">
+            <span class="form-label">Español</span>
+            <span class="form-value" id="vSpanish">—</span>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <button class="nav-btn" id="prevBtn">← Prev</button>
+          <span class="counter" id="counter">1 / 67</span>
+          <button class="nav-btn" id="nextBtn">Next →</button>
+        </div>
+      </div>
+
+      <!-- Quiz mode -->
+      <div class="quiz-view" id="quizView" style="display:none">
+        <div class="question-card">
+          <p class="q-label" id="quizLabel">What is the PAST form?</p>
+          <p class="q-word" id="quizWord">—</p>
+        </div>
+
+        <div class="reveal-area" id="revealArea">
+          <button class="reveal-btn" id="revealBtn">Show Answer</button>
+        </div>
+
+        <div class="answer-area" id="answerArea" style="display:none">
+          <p class="correct-answer" id="correctAnswer">—</p>
+          <div class="feedback-btns">
+            <button class="fb-btn fb-wrong" id="wrongBtn">✗ Wrong</button>
+            <button class="fb-btn fb-correct" id="correctBtn">✓ Correct</button>
+          </div>
+        </div>
+
+        <div class="quiz-stats">
+          <div class="qs-item">
+            <span class="qs-label">Right</span>
+            <strong class="qs-val green" id="rightCount">0</strong>
+          </div>
+          <div class="qs-item">
+            <span class="qs-label">Wrong</span>
+            <strong class="qs-val red" id="wrongCount">0</strong>
+          </div>
+          <div class="qs-item">
+            <span class="qs-label">Acc</span>
+            <strong class="qs-val" id="quizAcc">—</strong>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { loadData as fetchData } from '../utils/loadData.ts';
+
+  let verbs: any[] = [];
+  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let idx = 0, isQuiz = false, rightCount = 0, wrongCount = 0;
+
+  async function loadData() {
+    try {
+      ({ verbs, settings } = await fetchData());
+      showVerb();
+    } catch (e) { console.error('loadData error:', e); }
+  }
+
+  function showVerb() {
+    if (!verbs.length) return;
+    const v = verbs[idx];
+    const f = settings.forms;
+
+    (document.getElementById('vPresent') as HTMLElement).textContent = v.present;
+    (document.getElementById('vPast') as HTMLElement).textContent = v.past;
+    (document.getElementById('vParticiple') as HTMLElement).textContent = v.participle;
+    (document.getElementById('vSpanish') as HTMLElement).textContent = v.spanish;
+
+    (document.getElementById('tilePresent') as HTMLElement).style.display = f.present ? '' : 'none';
+    (document.getElementById('tilePast') as HTMLElement).style.display = f.past ? '' : 'none';
+    (document.getElementById('tileParticiple') as HTMLElement).style.display = f.participle ? '' : 'none';
+    (document.getElementById('tileSpanish') as HTMLElement).style.display = f.spanish ? '' : 'none';
+
+    (document.getElementById('counter') as HTMLElement).textContent = `${idx + 1} / ${verbs.length}`;
+
+    if (isQuiz) genQuizQuestion(v);
+  }
+
+  function genQuizQuestion(v: any) {
+    const f = settings.forms;
+    const forms: string[] = [];
+    if (f.present) forms.push('present');
+    if (f.past) forms.push('past');
+    if (f.participle) forms.push('participle');
+    if (f.spanish) forms.push('spanish');
+    if (forms.length < 2) forms.push('present', 'past', 'participle');
+
+    const show = forms[Math.floor(Math.random() * forms.length)];
+    const askForms = forms.filter(x => x !== show);
+    const ask = askForms[Math.floor(Math.random() * askForms.length)];
+    const LABELS: Record<string,string> = { present:'PRESENT', past:'PAST', participle:'PARTICIPLE', spanish:'SPANISH' };
+
+    (document.getElementById('quizLabel') as HTMLElement).textContent = `What is the ${LABELS[ask]} form?`;
+    (document.getElementById('quizWord') as HTMLElement).textContent = v[show];
+    (document.getElementById('correctAnswer') as HTMLElement).textContent = v[ask];
+
+    (document.getElementById('answerArea') as HTMLElement).style.display = 'none';
+    (document.getElementById('revealArea') as HTMLElement).style.display = 'flex';
+    (document.getElementById('revealBtn') as HTMLElement).style.display = 'block';
+  }
+
+  function switchMode(quiz: boolean) {
+    isQuiz = quiz;
+    (document.getElementById('browseView') as HTMLElement).style.display = quiz ? 'none' : 'flex';
+    (document.getElementById('quizView') as HTMLElement).style.display = quiz ? 'flex' : 'none';
+    (document.getElementById('btnBrowse') as HTMLElement).classList.toggle('active', !quiz);
+    (document.getElementById('btnQuiz') as HTMLElement).classList.toggle('active', quiz);
+    showVerb();
+  }
+
+  function nextVerb() { idx = (idx + 1) % verbs.length; showVerb(); }
+  function prevVerb() { idx = (idx - 1 + verbs.length) % verbs.length; showVerb(); }
+
+  function updateQuizStats() {
+    const total = rightCount + wrongCount;
+    const acc = total > 0 ? Math.round((rightCount / total) * 100) : 0;
+    (document.getElementById('rightCount') as HTMLElement).textContent = String(rightCount);
+    (document.getElementById('wrongCount') as HTMLElement).textContent = String(wrongCount);
+    (document.getElementById('quizAcc') as HTMLElement).textContent = total ? acc + '%' : '—';
+  }
+
+  document.getElementById('nextBtn')!.addEventListener('click', nextVerb);
+  document.getElementById('prevBtn')!.addEventListener('click', prevVerb);
+  document.getElementById('btnBrowse')!.addEventListener('click', () => switchMode(false));
+  document.getElementById('btnQuiz')!.addEventListener('click', () => switchMode(true));
+
+  document.getElementById('revealBtn')!.addEventListener('click', () => {
+    (document.getElementById('answerArea') as HTMLElement).style.display = 'flex';
+    (document.getElementById('revealArea') as HTMLElement).style.display = 'none';
+  });
+
+  document.getElementById('correctBtn')!.addEventListener('click', () => { rightCount++; updateQuizStats(); nextVerb(); });
+  document.getElementById('wrongBtn')!.addEventListener('click', () => { wrongCount++; updateQuizStats(); nextVerb(); });
+
+  document.addEventListener('keydown', e => {
+    if (!isQuiz) {
+      if (e.key === 'ArrowRight') nextVerb();
+      if (e.key === 'ArrowLeft') prevVerb();
+    } else if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      const revealArea = document.getElementById('revealArea') as HTMLElement;
+      if (revealArea.style.display !== 'none') {
+        (document.getElementById('revealBtn') as HTMLButtonElement).click();
+      }
+    }
+  });
+
+  loadData();
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    flex: 1;
+    text-align: center;
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 0.25rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.25rem;
+    border-radius: var(--r-sm);
+  }
+
+  .mode-btn {
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.75);
+    border-radius: calc(var(--r-sm) - 2px);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 36px;
+  }
+
+  .mode-btn.active {
+    background: rgba(255,255,255,0.3);
+    color: white;
+  }
+
+  .game-area {
+    flex: 1;
+    padding: 0.75rem 1.25rem 1.25rem;
+    min-height: 0;
+  }
+
+  /* ── Browse ── */
+  .browse-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .forms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    flex: 1;
+  }
+
+  .form-tile {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: var(--r-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1.25rem 1rem;
+    transition: transform var(--t);
+    min-height: 100px;
+  }
+
+  .form-tile:hover { transform: translateY(-3px); }
+
+  .form-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.65);
+  }
+
+  .form-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  .nav-btn {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.7rem 1.5rem;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 50px;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.32); border-color: rgba(255,255,255,0.55); }
+
+  .counter {
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  /* ── Quiz ── */
+  .quiz-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .question-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-xl);
+    padding: 1.75rem 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .q-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.6rem;
+  }
+
+  .q-word {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  }
+
+  .reveal-area {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .reveal-btn {
+    font-family: var(--font);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.9rem 3rem;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 54px;
+  }
+
+  .reveal-btn:hover { background: rgba(255,255,255,0.32); }
+
+  .answer-area {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .correct-answer {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  }
+
+  .feedback-btns {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .fb-btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 54px;
+  }
+
+  .fb-btn:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
+  .fb-wrong   { background: #ef4444; color: white; }
+  .fb-correct { background: #10b981; color: white; }
+
+  /* Quiz stats */
+  .quiz-stats {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+
+  .qs-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+  .qs-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.6); }
+  .qs-val { font-size: 1.4rem; font-weight: 800; color: white; }
+  .qs-val.green { color: #6ee7b7; }
+  .qs-val.red   { color: #fca5a5; }
+
+  @media (min-width: 600px) {
+    .top-bar { padding: 1rem 1.75rem; }
+    h1 { font-size: 1.5rem; }
+    .game-area { padding: 1rem 1.75rem 1.5rem; }
+    .form-value { font-size: 2.5rem; }
+    .q-word { font-size: 4rem; }
+    .correct-answer { font-size: 3rem; }
+    .forms-grid { gap: 1rem; }
+    .form-tile { min-height: 120px; }
+  }
+
+  @media (min-width: 1024px) {
+    .game-area { padding: 1.25rem 2.5rem 2rem; }
+    .form-value { font-size: 3rem; }
+  }
+</style>

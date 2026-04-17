@@ -1,17 +1,154 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Irregular Verbs Game">
+  <div class="page">
+    <header class="page-header">
+      <div class="logo">🎮</div>
+      <h1>Irregular Verbs</h1>
+      <p class="subtitle">Learn English the fun way</p>
+    </header>
+
+    <main class="grid">
+      <a href="/quick-match" class="card card--purple">
+        <span class="card-icon">🎯</span>
+        <h2>Quick Match</h2>
+        <p>Multiple choice</p>
+      </a>
+
+      <a href="/speed-challenge" class="card card--pink">
+        <span class="card-icon">⚡</span>
+        <h2>Speed Challenge</h2>
+        <p>Race the clock</p>
+      </a>
+
+      <a href="/type-master" class="card card--indigo">
+        <span class="card-icon">⌨️</span>
+        <h2>Type Master</h2>
+        <p>Type the answer</p>
+      </a>
+
+      <a href="/memory-cards" class="card card--cyan">
+        <span class="card-icon">🃏</span>
+        <h2>Memory Cards</h2>
+        <p>Find the pairs</p>
+      </a>
+
+      <a href="/practice" class="card card--green">
+        <span class="card-icon">♾️</span>
+        <h2>Practice</h2>
+        <p>At your own pace</p>
+      </a>
+
+      <a href="/settings" class="card card--settings">
+        <span class="card-icon">⚙️</span>
+        <h2>Settings</h2>
+        <p>Configure forms</p>
+      </a>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem 5rem;
+    gap: 2rem;
+  }
+
+  .page-header {
+    text-align: center;
+    color: white;
+  }
+
+  .logo {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    opacity: 0.85;
+    margin-top: 0.3rem;
+    font-weight: 500;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.75rem 1rem;
+    border-radius: var(--r-lg);
+    text-decoration: none;
+    color: white;
+    min-height: 130px;
+    text-align: center;
+    box-shadow: var(--sh-md);
+    transition: transform var(--t), box-shadow var(--t);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    opacity: 0;
+    transition: opacity var(--t);
+  }
+
+  .card:hover::after { opacity: 1; }
+  .card:hover { transform: translateY(-5px); box-shadow: var(--sh-lg); }
+  .card:active { transform: translateY(-2px); }
+
+  .card-icon { font-size: 2.2rem; line-height: 1; }
+  .card h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; }
+  .card p { font-size: 0.82rem; opacity: 0.88; font-weight: 500; }
+
+  .card--purple  { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .card--pink    { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .card--indigo  { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .card--cyan    { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+  .card--green   { background: linear-gradient(135deg, #10b981, #059669); }
+  .card--settings { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+  @media (min-width: 600px) {
+    .grid { grid-template-columns: repeat(3, 1fr); max-width: 860px; }
+    h1 { font-size: 3rem; }
+    .logo { font-size: 4rem; }
+    .card { min-height: 160px; padding: 2rem 1.5rem; }
+    .card-icon { font-size: 2.8rem; }
+    .card h2 { font-size: 1.25rem; }
+    .card p { font-size: 0.9rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .page { padding: 2.5rem 2rem 5rem; gap: 2.5rem; }
+    .grid { gap: 1.25rem; max-width: 960px; }
+    .card { min-height: 180px; }
+  }
+</style>

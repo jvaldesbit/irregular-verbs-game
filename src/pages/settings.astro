@@ -1,0 +1,333 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Settings - Irregular Verbs">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1>⚙️ Settings</h1>
+      <div style="width: 80px"></div>
+    </header>
+
+    <main class="game-area">
+      <div class="settings-layout">
+        <!-- Main card -->
+        <div class="card">
+          <h2>Verb Forms to Learn</h2>
+          <p class="desc">Select at least 2 forms for games to work.</p>
+
+          <form id="settingsForm" class="form">
+            <label class="check-row" id="rowPresent">
+              <input type="checkbox" id="chkPresent">
+              <span class="check-box"></span>
+              <span class="check-body">
+                <strong>Present (Infinitive)</strong>
+                <small>eat, go, do</small>
+              </span>
+            </label>
+            <label class="check-row" id="rowPast">
+              <input type="checkbox" id="chkPast">
+              <span class="check-box"></span>
+              <span class="check-body">
+                <strong>Past (Simple Past)</strong>
+                <small>ate, went, did</small>
+              </span>
+            </label>
+            <label class="check-row" id="rowParticiple">
+              <input type="checkbox" id="chkParticiple">
+              <span class="check-box"></span>
+              <span class="check-body">
+                <strong>Participle (Past Participle)</strong>
+                <small>eaten, gone, done</small>
+              </span>
+            </label>
+            <label class="check-row" id="rowSpanish">
+              <input type="checkbox" id="chkSpanish">
+              <span class="check-box"></span>
+              <span class="check-body">
+                <strong>Spanish (Español)</strong>
+                <small>comer, ir, hacer</small>
+              </span>
+            </label>
+
+            <div class="btn-row">
+              <button type="submit" class="save-btn">Save Settings</button>
+              <button type="button" class="reset-btn" id="resetBtn">Reset</button>
+            </div>
+          </form>
+
+          <div class="msg success" id="msgOk" style="display:none">✓ Settings saved!</div>
+          <div class="msg error" id="msgErr" style="display:none">⚠️ Select at least 2 forms.</div>
+        </div>
+
+        <!-- Tips card -->
+        <div class="card tips-card">
+          <h3>💡 Tips</h3>
+          <ul>
+            <li><strong>Beginner</strong> — Present + Past</li>
+            <li><strong>Intermediate</strong> — Add Participle</li>
+            <li><strong>Advanced</strong> — All four forms</li>
+            <li><strong>Spanish speakers</strong> — Enable Spanish for faster learning!</li>
+          </ul>
+
+          <h3 style="margin-top:1.5rem">🎮 Game Modes</h3>
+          <ul>
+            <li><strong>Quick Match</strong> — 4-option multiple choice</li>
+            <li><strong>Speed Challenge</strong> — Match pairs in 60s</li>
+            <li><strong>Type Master</strong> — Type the answer</li>
+            <li><strong>Memory Cards</strong> — Classic card flip</li>
+            <li><strong>Practice</strong> — Browse or self-quiz</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+
+  function syncCheckboxes() {
+    (document.getElementById('chkPresent') as HTMLInputElement).checked = settings.forms.present;
+    (document.getElementById('chkPast') as HTMLInputElement).checked = settings.forms.past;
+    (document.getElementById('chkParticiple') as HTMLInputElement).checked = settings.forms.participle;
+    (document.getElementById('chkSpanish') as HTMLInputElement).checked = settings.forms.spanish;
+  }
+
+  function showMsg(type: 'ok'|'err') {
+    const ok = document.getElementById('msgOk') as HTMLElement;
+    const err = document.getElementById('msgErr') as HTMLElement;
+    ok.style.display = type === 'ok' ? 'block' : 'none';
+    err.style.display = type === 'err' ? 'block' : 'none';
+    setTimeout(() => { ok.style.display = 'none'; err.style.display = 'none'; }, 3000);
+  }
+
+  function saveSettings(s: any) {
+    localStorage.setItem('verbGameSettings', JSON.stringify(s));
+    settings = s;
+    showMsg('ok');
+  }
+
+  document.getElementById('settingsForm')!.addEventListener('submit', e => {
+    e.preventDefault();
+    const s = {
+      forms: {
+        present: (document.getElementById('chkPresent') as HTMLInputElement).checked,
+        past: (document.getElementById('chkPast') as HTMLInputElement).checked,
+        participle: (document.getElementById('chkParticiple') as HTMLInputElement).checked,
+        spanish: (document.getElementById('chkSpanish') as HTMLInputElement).checked,
+      }
+    };
+    const count = Object.values(s.forms).filter(Boolean).length;
+    if (count < 2) { showMsg('err'); return; }
+    saveSettings(s);
+  });
+
+  document.getElementById('resetBtn')!.addEventListener('click', () => {
+    const s = { forms: { present: true, past: true, participle: true, spanish: true } };
+    saveSettings(s);
+    syncCheckboxes();
+  });
+
+  // Load from localStorage first, fall back to JSON
+  const saved = localStorage.getItem('verbGameSettings');
+  if (saved) {
+    settings = JSON.parse(saved);
+    syncCheckboxes();
+  } else {
+    fetch('/data/settings.json')
+      .then(r => r.json())
+      .then(s => { settings = s; syncCheckboxes(); })
+      .catch(() => syncCheckboxes());
+  }
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #f59e0b 0%, #ef4444 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    flex: 1;
+    text-align: center;
+  }
+
+  .game-area {
+    flex: 1;
+    padding: 0.75rem 1.25rem 5rem;
+    overflow-y: auto;
+  }
+
+  .settings-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-xl);
+    padding: 1.75rem 1.5rem;
+  }
+
+  .card h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.4rem;
+  }
+
+  .desc {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.72);
+    margin-bottom: 1.25rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* Checkboxes */
+  .form { display: flex; flex-direction: column; gap: 0.65rem; }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 62px;
+  }
+
+  .check-row:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+
+  .check-row input[type="checkbox"] { display: none; }
+
+  .check-box {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.4);
+    flex-shrink: 0;
+    position: relative;
+    transition: all var(--t);
+    background: rgba(255,255,255,0.15);
+  }
+
+  .check-row input:checked + .check-box {
+    background: white;
+    border-color: white;
+  }
+
+  .check-row input:checked + .check-box::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f59e0b;
+    font-weight: 900;
+    font-size: 0.9rem;
+  }
+
+  .check-body { flex: 1; }
+  .check-body strong { display: block; color: white; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem; }
+  .check-body small { color: rgba(255,255,255,0.65); font-size: 0.82rem; font-weight: 500; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .save-btn, .reset-btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.9rem 1.5rem;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 54px;
+  }
+
+  .save-btn { background: white; color: #d97706; }
+  .save-btn:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+
+  .reset-btn { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); }
+  .reset-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* Messages */
+  .msg {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--r-md);
+    font-weight: 700;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .msg.success { background: #d1fae5; color: #065f46; }
+  .msg.error   { background: #fee2e2; color: #991b1b; }
+
+  /* Tips card */
+  .tips-card { background: rgba(255,255,255,0.1); }
+
+  .tips-card h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.75rem;
+  }
+
+  .tips-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .tips-card li {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.5;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(255,255,255,0.3);
+  }
+
+  .tips-card li strong { color: white; }
+
+  @media (min-width: 700px) {
+    .settings-layout { flex-direction: row; align-items: flex-start; }
+    .card { flex: 2; }
+    .tips-card { flex: 1; }
+    .game-area { padding: 1rem 1.75rem 5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .game-area { padding: 1.25rem 2.5rem 5rem; }
+    .card h2 { font-size: 1.5rem; }
+  }
+</style>

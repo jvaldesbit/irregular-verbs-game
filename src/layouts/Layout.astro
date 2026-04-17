@@ -1,0 +1,204 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  bodyClass?: string;
+}
+const { title, description = 'Learn English irregular verbs the fun way', bodyClass = '' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Verb Game">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class={bodyClass}>
+  <slot />
+
+  <button class="fs-btn" id="fsBtn" title="Pantalla completa" aria-label="Toggle fullscreen">
+    <svg id="fsEnter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+    </svg>
+    <svg id="fsExit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+      <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 0 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+    </svg>
+  </button>
+</body>
+</html>
+
+<style is:global>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --purple:      #667eea;
+    --purple-dark: #764ba2;
+    --green:       #10b981;
+    --green-dark:  #059669;
+    --red:         #ef4444;
+    --amber:       #f59e0b;
+    --r-sm:  0.625rem;
+    --r-md:  1rem;
+    --r-lg:  1.5rem;
+    --r-xl:  2rem;
+    --sh-sm: 0 2px 8px rgba(0,0,0,0.10);
+    --sh-md: 0 8px 24px rgba(0,0,0,0.14);
+    --sh-lg: 0 16px 48px rgba(0,0,0,0.18);
+    --t: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+  }
+
+  @media (min-width: 768px) {
+    html { font-size: 17px; }
+  }
+
+  @media (min-width: 1024px) {
+    html { font-size: 18px; }
+  }
+
+  /* Fullscreen toggle button */
+  .fs-btn {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 9999;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    transition: background var(--t), transform var(--t);
+  }
+
+  .fs-btn:hover {
+    background: rgba(255,255,255,0.35);
+    transform: scale(1.12);
+  }
+
+  .fs-btn:active {
+    transform: scale(0.96);
+  }
+
+  .fs-btn svg {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+  }
+
+  /* Shared back button */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.2);
+    transition: background var(--t);
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .back-btn:hover {
+    background: rgba(255,255,255,0.32);
+  }
+
+  /* Shared stats badge */
+  .stat-badge {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--r-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .stat-badge strong {
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+
+  /* Progress bar at page bottom */
+  .page-progress {
+    height: 5px;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+
+  .page-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #34d399);
+    transition: width 0.5s ease;
+    width: 0%;
+    border-radius: 0 3px 3px 0;
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('fsBtn');
+  const enterIcon = document.getElementById('fsEnter');
+  const exitIcon = document.getElementById('fsExit');
+
+  function syncIcon() {
+    const full = !!document.fullscreenElement;
+    enterIcon!.style.display = full ? 'none' : 'block';
+    exitIcon!.style.display = full ? 'block' : 'none';
+  }
+
+  btn!.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
+
+  document.addEventListener('fullscreenchange', syncIcon);
+</script>

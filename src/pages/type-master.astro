@@ -1,0 +1,354 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Type Master - Irregular Verbs">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1>⌨️ Type Master</h1>
+      <div class="stats">
+        <div class="stat-badge">Score <strong id="score">0</strong></div>
+        <div class="stat-badge">Acc <strong id="accuracy">100%</strong></div>
+      </div>
+    </header>
+
+    <main class="game-area">
+      <div class="question-card">
+        <p class="q-label" id="questionLabel">Type the PAST form of:</p>
+        <p class="q-word" id="questionWord">—</p>
+        <p class="q-hint" id="hint"></p>
+      </div>
+
+      <form class="answer-form" id="answerForm" autocomplete="off">
+        <input
+          type="text"
+          id="answerInput"
+          class="answer-input"
+          placeholder="Type your answer..."
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="submit-btn">Check ✓</button>
+      </form>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="skip-row">
+        <button class="skip-btn" id="skipBtn">Skip →</button>
+      </div>
+    </main>
+
+    <div class="progress-footer">
+      <span class="progress-label">
+        <span id="progressText">0 answered</span>
+      </span>
+      <div class="page-progress" style="flex:1">
+        <div class="page-progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { loadData as fetchData } from '../utils/loadData.ts';
+
+  let verbs: any[] = [];
+  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let currentQuestion: any = null;
+  let score = 0, totalAnswered = 0, correctAnswers = 0;
+
+  async function loadData() {
+    try {
+      ({ verbs, settings } = await fetchData());
+      generateQuestion();
+    } catch (e) { console.error('loadData error:', e); }
+  }
+
+  function getAvailableForms() {
+    const f = settings.forms;
+    const forms: string[] = [];
+    if (f.present) forms.push('present');
+    if (f.past) forms.push('past');
+    if (f.participle) forms.push('participle');
+    if (f.spanish) forms.push('spanish');
+    return forms.length >= 2 ? forms : ['present', 'past', 'participle'];
+  }
+
+  const LABELS: Record<string,string> = { present:'PRESENT', past:'PAST', participle:'PARTICIPLE', spanish:'SPANISH' };
+
+  function generateQuestion() {
+    const forms = getAvailableForms();
+    if (forms.length < 2) { window.location.href = '/settings'; return; }
+
+    const verb = verbs[Math.floor(Math.random() * verbs.length)];
+    const showForm = forms[Math.floor(Math.random() * forms.length)];
+    const askForms = forms.filter(f => f !== showForm);
+    const askForm = askForms[Math.floor(Math.random() * askForms.length)];
+
+    currentQuestion = { show: showForm, ask: askForm, correct: verb[askForm].toLowerCase().trim() };
+
+    (document.getElementById('questionLabel') as HTMLElement).textContent = `Type the ${LABELS[askForm]} form of:`;
+    (document.getElementById('questionWord') as HTMLElement).textContent = verb[showForm];
+
+    const hint = document.getElementById('hint') as HTMLElement;
+    hint.textContent = (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish)
+      ? `(${verb.spanish})` : '';
+
+    const input = document.getElementById('answerInput') as HTMLInputElement;
+    input.value = '';
+    input.className = 'answer-input';
+    input.disabled = false;
+    input.focus();
+
+    const fb = document.getElementById('feedback') as HTMLElement;
+    fb.textContent = '';
+    fb.className = 'feedback';
+
+    const submitBtn = document.querySelector<HTMLButtonElement>('.submit-btn')!;
+    submitBtn.disabled = false;
+  }
+
+  function normalize(s: string) { return s.toLowerCase().trim().replace(/\s+/g,' '); }
+
+  function checkAnswer(raw: string) {
+    const user = normalize(raw);
+    const parts = currentQuestion.correct.split('/').map((p: string) => p.trim());
+    const ok = parts.some((p: string) => user === p) || user === currentQuestion.correct;
+
+    totalAnswered++;
+    const fb = document.getElementById('feedback') as HTMLElement;
+    const input = document.getElementById('answerInput') as HTMLInputElement;
+    const submitBtn = document.querySelector<HTMLButtonElement>('.submit-btn')!;
+
+    input.disabled = true;
+    submitBtn.disabled = true;
+
+    if (ok) {
+      score++; correctAnswers++;
+      fb.textContent = '✓ Correct!';
+      fb.className = 'feedback is-correct';
+      input.className = 'answer-input correct';
+      setTimeout(generateQuestion, 1400);
+    } else {
+      fb.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
+      fb.className = 'feedback is-wrong';
+      input.className = 'answer-input wrong';
+      setTimeout(generateQuestion, 2600);
+    }
+
+    updateStats();
+  }
+
+  function updateStats() {
+    (document.getElementById('score') as HTMLElement).textContent = String(score);
+    const acc = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 100;
+    (document.getElementById('accuracy') as HTMLElement).textContent = acc + '%';
+    (document.getElementById('progressText') as HTMLElement).textContent = `${totalAnswered} answered`;
+    const fill = document.getElementById('progressFill') as HTMLElement;
+    fill.style.width = acc + '%';
+    fill.style.background = acc >= 80
+      ? 'linear-gradient(90deg, #10b981, #34d399)'
+      : acc >= 60
+        ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+        : 'linear-gradient(90deg, #ef4444, #f87171)';
+  }
+
+  document.getElementById('answerForm')!.addEventListener('submit', e => {
+    e.preventDefault();
+    const val = (document.getElementById('answerInput') as HTMLInputElement).value;
+    if (val.trim()) checkAnswer(val);
+  });
+
+  document.getElementById('skipBtn')!.addEventListener('click', () => {
+    totalAnswered++;
+    updateStats();
+    generateQuestion();
+  });
+
+  loadData();
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #4f46e5 0%, #7c3aed 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    flex: 1;
+    text-align: center;
+  }
+
+  .stats { display: flex; gap: 0.5rem; }
+
+  .game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1.25rem 1rem;
+    gap: 1rem;
+    min-height: 0;
+  }
+
+  /* Question card */
+  .question-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-xl);
+    padding: 1.75rem 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .q-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.6rem;
+  }
+
+  .q-word {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  }
+
+  .q-hint {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+    margin-top: 0.4rem;
+    min-height: 1.4em;
+    font-weight: 500;
+  }
+
+  /* Answer form */
+  .answer-form {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .answer-input {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 0.9rem 1.1rem;
+    border: 3px solid rgba(255,255,255,0.35);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.92);
+    color: #1e1b4b;
+    transition: border-color var(--t), box-shadow var(--t);
+    min-height: 58px;
+  }
+
+  .answer-input::placeholder { color: #a5b4fc; }
+  .answer-input:focus { outline: none; border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
+  .answer-input.correct { border-color: #10b981; background: #ecfdf5; color: #065f46; }
+  .answer-input.wrong   { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+
+  .submit-btn {
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.9rem 1.5rem;
+    background: white;
+    color: #4f46e5;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 58px;
+    white-space: nowrap;
+  }
+
+  .submit-btn:hover:not(:disabled) { background: #ede9fe; transform: translateY(-2px); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Feedback */
+  .feedback {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    min-height: 1.7em;
+    color: rgba(255,255,255,0.85);
+    flex-shrink: 0;
+  }
+
+  .feedback.is-correct { color: #6ee7b7; }
+  .feedback.is-wrong   { color: #fca5a5; }
+
+  /* Skip */
+  .skip-row { text-align: center; flex-shrink: 0; }
+
+  .skip-btn {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.75);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 44px;
+  }
+
+  .skip-btn:hover { border-color: rgba(255,255,255,0.6); color: white; }
+
+  /* Progress footer */
+  .progress-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 600px) {
+    .top-bar { padding: 1rem 1.75rem; }
+    h1 { font-size: 1.5rem; }
+    .game-area { padding: 1.25rem 1.75rem 1.5rem; gap: 1.25rem; }
+    .q-word { font-size: 4rem; }
+    .answer-input { font-size: 1.4rem; min-height: 66px; }
+    .submit-btn { min-height: 66px; font-size: 1.1rem; padding: 0.9rem 2rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .game-area { padding: 1.5rem 2.5rem 2rem; }
+    .q-word { font-size: 4.5rem; }
+  }
+</style>

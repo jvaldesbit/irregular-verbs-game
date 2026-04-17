@@ -1,0 +1,336 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Quick Match - Irregular Verbs" bodyClass="qm-body">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1>🎯 Quick Match</h1>
+      <div class="stats">
+        <div class="stat-badge">Score <strong id="score">0</strong></div>
+        <div class="stat-badge">🔥 <strong id="streak">0</strong></div>
+      </div>
+    </header>
+
+    <main class="game-area">
+      <div class="question-card">
+        <p class="q-label" id="questionLabel">Find the PRESENT form of:</p>
+        <p class="q-word" id="questionWord">—</p>
+        <p class="q-hint" id="hint"></p>
+      </div>
+
+      <div class="options-grid" id="optionsGrid"></div>
+
+      <div class="result-msg" id="resultMessage"></div>
+    </main>
+
+    <div class="page-progress">
+      <div class="page-progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { loadData as fetchData } from '../utils/loadData.ts';
+
+  let verbs: any[] = [];
+  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let currentVerb: any = null;
+  let currentQuestion: any = null;
+  let score = 0;
+  let streak = 0;
+  let totalQuestions = 0;
+
+  async function loadData() {
+    try {
+      ({ verbs, settings } = await fetchData());
+      generateQuestion();
+    } catch (e) { console.error('loadData error:', e); }
+  }
+
+  function getAvailableForms() {
+    const f = settings.forms;
+    const forms = [];
+    if (f.present) forms.push('present');
+    if (f.past) forms.push('past');
+    if (f.participle) forms.push('participle');
+    if (f.spanish) forms.push('spanish');
+    return forms.length >= 2 ? forms : ['present', 'past', 'participle'];
+  }
+
+  const LABELS: Record<string, string> = {
+    present: 'PRESENT', past: 'PAST', participle: 'PARTICIPLE', spanish: 'SPANISH'
+  };
+
+  function generateQuestion() {
+    const forms = getAvailableForms();
+    if (forms.length < 2) { window.location.href = '/settings'; return; }
+
+    currentVerb = verbs[Math.floor(Math.random() * verbs.length)];
+    const showForm = forms[Math.floor(Math.random() * forms.length)];
+    const askForms = forms.filter(f => f !== showForm);
+    const askForm = askForms[Math.floor(Math.random() * askForms.length)];
+
+    currentQuestion = { show: showForm, ask: askForm, correct: currentVerb[askForm] };
+
+    (document.getElementById('questionLabel') as HTMLElement).textContent =
+      `Find the ${LABELS[askForm]} form of:`;
+    (document.getElementById('questionWord') as HTMLElement).textContent = currentVerb[showForm];
+
+    const hintEl = document.getElementById('hint') as HTMLElement;
+    if (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish) {
+      hintEl.textContent = `(${currentVerb.spanish})`;
+    } else {
+      hintEl.textContent = '';
+    }
+
+    generateOptions();
+    const msg = document.getElementById('resultMessage') as HTMLElement;
+    msg.textContent = '';
+    msg.className = 'result-msg';
+  }
+
+  function generateOptions() {
+    const options = [currentQuestion.correct];
+    while (options.length < 4) {
+      const rand = verbs[Math.floor(Math.random() * verbs.length)][currentQuestion.ask];
+      if (!options.includes(rand)) options.push(rand);
+    }
+    options.sort(() => Math.random() - 0.5);
+
+    const grid = document.getElementById('optionsGrid') as HTMLElement;
+    grid.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.onclick = () => checkAnswer(opt, btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function checkAnswer(selected: string, btn: HTMLButtonElement) {
+    totalQuestions++;
+    const allBtns = document.querySelectorAll<HTMLButtonElement>('.opt-btn');
+    allBtns.forEach(b => b.disabled = true);
+
+    const msg = document.getElementById('resultMessage') as HTMLElement;
+
+    if (selected === currentQuestion.correct) {
+      btn.classList.add('correct');
+      msg.textContent = '✓ Correct!';
+      msg.className = 'result-msg is-correct';
+      score++;
+      streak++;
+    } else {
+      btn.classList.add('wrong');
+      msg.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
+      msg.className = 'result-msg is-wrong';
+      streak = 0;
+      allBtns.forEach(b => {
+        if (b.textContent === currentQuestion.correct) b.classList.add('correct');
+      });
+    }
+
+    (document.getElementById('score') as HTMLElement).textContent = String(score);
+    (document.getElementById('streak') as HTMLElement).textContent = String(streak);
+
+    const accuracy = (score / totalQuestions) * 100;
+    (document.getElementById('progressFill') as HTMLElement).style.width = accuracy + '%';
+
+    setTimeout(generateQuestion, 1800);
+  }
+
+  loadData();
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    flex: 1;
+    text-align: center;
+  }
+
+  .stats {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* ── Game area ── */
+  .game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1.25rem 1rem;
+    gap: 1rem;
+    min-height: 0;
+  }
+
+  /* ── Question card ── */
+  .question-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-xl);
+    padding: 1.5rem 1.5rem 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .q-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 0.6rem;
+  }
+
+  .q-word {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  }
+
+  .q-hint {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.65);
+    font-style: italic;
+    margin-top: 0.4rem;
+    min-height: 1.4em;
+    font-weight: 500;
+  }
+
+  /* ── Options grid ── */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    flex: 1;
+    min-height: 0;
+  }
+
+  :global(.opt-btn) {
+    width: 100%;
+    height: 100%;
+    min-height: 90px;
+    font-family: var(--font);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border: 3px solid rgba(255,255,255,0.35);
+    border-radius: var(--r-lg);
+    background: rgba(255,255,255,0.92);
+    color: #1e1b4b;
+    cursor: pointer;
+    transition: all var(--t);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  :global(.opt-btn::before) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+    opacity: 0;
+    transition: opacity var(--t);
+  }
+
+  :global(.opt-btn:hover:not(:disabled)::before) { opacity: 1; }
+
+  :global(.opt-btn:hover:not(:disabled)) {
+    border-color: rgba(255,255,255,0.8);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  :global(.opt-btn:active:not(:disabled)) {
+    transform: translateY(-1px) scale(0.99);
+  }
+
+  :global(.opt-btn:disabled) { cursor: not-allowed; }
+
+  :global(.opt-btn.correct) {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 28px rgba(16,185,129,0.45) !important;
+    transform: scale(1.02) !important;
+  }
+
+  :global(.opt-btn.wrong) {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 28px rgba(239,68,68,0.45) !important;
+    animation: shake 0.4s ease !important;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* ── Result message ── */
+  .result-msg {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-height: 1.6em;
+    color: rgba(255,255,255,0.9);
+    flex-shrink: 0;
+  }
+
+  .result-msg.is-correct { color: #6ee7b7; }
+  .result-msg.is-wrong   { color: #fca5a5; }
+
+  /* ── Responsive ── */
+  @media (min-width: 600px) {
+    .top-bar { padding: 1rem 1.75rem; }
+    h1 { font-size: 1.5rem; }
+    .game-area { padding: 1rem 1.75rem 1.5rem; gap: 1.25rem; }
+    .question-card { padding: 2rem 2rem 1.75rem; }
+    .q-word { font-size: 4rem; }
+    .options-grid { gap: 1rem; }
+    :global(.opt-btn) { min-height: 110px; font-size: 1.5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .game-area { padding: 1.25rem 2.5rem 2rem; }
+    .q-word { font-size: 4.5rem; }
+    :global(.opt-btn) { min-height: 130px; font-size: 1.65rem; }
+  }
+</style>
