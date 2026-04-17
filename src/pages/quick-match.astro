@@ -5,8 +5,11 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Quick Match - Irregular Verbs" bodyClass="qm-body">
   <div class="page">
     <header class="top-bar">
-      <a href="/" class="back-btn">← Back</a>
-      <h1>🎯 Quick Match</h1>
+      <div class="top-row">
+        <a href="/" class="back-btn">← Back</a>
+        <h1>🎯 Quick Match</h1>
+        <div class="top-spacer"></div>
+      </div>
       <div class="stats">
         <div class="stat-badge">Score <strong id="score">0</strong></div>
         <div class="stat-badge">🔥 <strong id="streak">0</strong></div>
@@ -460,11 +463,21 @@ import Layout from '../layouts/Layout.astro';
   /* ── Header ── */
   .top-bar {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.85rem 1.25rem;
-    gap: 0.75rem;
+    flex-direction: column;
+    padding: 0.75rem 1.25rem 0.5rem;
+    gap: 0.5rem;
     flex-shrink: 0;
+  }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .top-spacer {
+    flex-shrink: 0;
+    width: 80px;
   }
 
   h1 {
@@ -474,11 +487,17 @@ import Layout from '../layouts/Layout.astro';
     letter-spacing: -0.02em;
     flex: 1;
     text-align: center;
+    white-space: nowrap;
   }
 
   .stats {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .stats .stat-badge {
+    flex: 1;
+    justify-content: center;
   }
 
   .best-badge { opacity: 0.72; }
@@ -625,8 +644,11 @@ import Layout from '../layouts/Layout.astro';
 
   /* ── Responsive ── */
   @media (min-width: 600px) {
-    .top-bar { padding: 1rem 1.75rem; }
-    h1 { font-size: 1.5rem; }
+    .top-bar { flex-direction: row; align-items: center; padding: 0.85rem 1.75rem; gap: 0.75rem; }
+    .top-row { flex: 1; }
+    .stats { flex-shrink: 0; }
+    .stats .stat-badge { flex: none; }
+    h1 { font-size: 1.5rem; white-space: normal; }
     .game-area { padding: 1rem 1.75rem 1.5rem; gap: 1.25rem; }
     .question-card { padding: 2rem 2rem 1.75rem; }
     .q-word { font-size: 4rem; }

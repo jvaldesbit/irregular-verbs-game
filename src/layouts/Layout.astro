@@ -34,50 +34,66 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 <body class={bodyClass}>
   <slot />
 
-  <!-- FAB Stack (bottom-right) -->
-  <div class="fab-stack">
-    <button class="fab-btn" id="fsBtn" title="Pantalla completa" aria-label="Toggle fullscreen">
-      <svg id="fsEnter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+  <!-- FAB Speed Dial (bottom-right) -->
+  <div class="fab-stack" id="fabStack">
+    <!-- Speed dial items (shown when open) -->
+    <div class="fab-items">
+      <button class="fab-btn fab-item" id="fsBtn" title="Pantalla completa" aria-label="Toggle fullscreen" style="--i:4">
+        <svg id="fsEnter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        <svg id="fsExit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 0 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+        </svg>
+      </button>
+
+      <button class="fab-btn fab-item" id="soundBtn" title="Sonido" aria-label="Toggle sound" style="--i:3">
+        <svg id="soundOn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <svg id="soundOff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+      </button>
+
+      <button class="fab-btn fab-item" id="infoBtn" title="¿Cómo jugar?" aria-label="How to play" style="--i:2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+
+      <button class="fab-btn fab-item" id="authorBtn" title="Sobre el autor" aria-label="About author" style="--i:1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </button>
+
+      <a href="/settings" class="fab-btn fab-item" title="Settings" aria-label="Settings" style="--i:0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Trigger button -->
+    <button class="fab-trigger" id="fabTrigger" aria-label="Abrir menú" aria-expanded="false">
+      <svg class="fab-trigger-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/>
       </svg>
-      <svg id="fsExit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-        <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 0 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+      <svg class="fab-trigger-close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
-
-    <button class="fab-btn" id="soundBtn" title="Sonido" aria-label="Toggle sound">
-      <svg id="soundOn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-      </svg>
-      <svg id="soundOff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-        <line x1="23" y1="9" x2="17" y2="15"/>
-        <line x1="17" y1="9" x2="23" y2="15"/>
-      </svg>
-    </button>
-
-    <button class="fab-btn" id="infoBtn" title="¿Cómo jugar?" aria-label="How to play">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-    </button>
-
-    <button class="fab-btn" id="authorBtn" title="Sobre el autor" aria-label="About author">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-    </button>
-
-    <a href="/settings" class="fab-btn" title="Settings" aria-label="Settings">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-    </a>
   </div>
 
   <!-- Fixed footer -->
@@ -257,18 +273,81 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     color: rgba(255,255,255,0.85);
   }
 
-  /* ── FAB Stack ── */
+  /* ── FAB Speed Dial ── */
   .fab-stack {
     position: fixed;
     bottom: 1.25rem;
     right: 1.25rem;
     z-index: 9999;
     display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
+    flex-direction: column;
     align-items: center;
+    gap: 0;
   }
 
+  /* Trigger button — collapsed pill, semi-transparent */
+  .fab-trigger {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.20);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .fab-trigger:hover,
+  .fab-stack.open .fab-trigger {
+    background: rgba(255,255,255,0.32);
+    color: white;
+  }
+
+  .fab-trigger:active { transform: scale(0.92); }
+
+  .fab-trigger svg {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .fab-trigger-close {
+    position: absolute;
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.7);
+  }
+
+  .fab-stack.open .fab-trigger-open {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.7);
+  }
+
+  .fab-stack.open .fab-trigger-close {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  /* Items container */
+  .fab-items {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    pointer-events: none;
+  }
+
+  /* Individual action buttons */
   .fab-btn {
     width: 44px;
     height: 44px;
@@ -283,16 +362,36 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 12px rgba(0,0,0,0.25);
-    transition: background var(--t), transform var(--t);
     flex-shrink: 0;
+    text-decoration: none;
+  }
+
+  .fab-item {
+    opacity: 0;
+    transform: translateY(12px) scale(0.8);
+    transition:
+      opacity 0.22s ease calc(var(--i, 0) * 40ms),
+      transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--i, 0) * 40ms),
+      background 0.15s ease;
+    pointer-events: none;
+  }
+
+  .fab-stack.open .fab-items {
+    pointer-events: auto;
+  }
+
+  .fab-stack.open .fab-item {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
   }
 
   .fab-btn:hover {
     background: rgba(255,255,255,0.38);
-    transform: scale(1.12);
+    transform: scale(1.12) !important;
   }
 
-  .fab-btn:active { transform: scale(0.96); }
+  .fab-btn:active { transform: scale(0.96) !important; }
 
   .fab-btn svg {
     width: 18px;
@@ -657,6 +756,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   let _escAdded = false;
 
   function initFabs() {
+    const fabStack  = document.getElementById('fabStack');
+    const fabTrigger = document.getElementById('fabTrigger');
     const fsBtn     = document.getElementById('fsBtn');
     const fsEnter   = document.getElementById('fsEnter');
     const fsExit    = document.getElementById('fsExit');
@@ -671,7 +772,26 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     const infoClose = document.getElementById('infoClose');
     const authorClose = document.getElementById('authorClose');
 
-    if (!fsBtn) return;
+    if (!fsBtn || !fabStack || !fabTrigger) return;
+
+    // --- Speed dial toggle ---
+    function openDial() {
+      fabStack.classList.add('open');
+      fabTrigger.setAttribute('aria-expanded', 'true');
+      (backdrop as HTMLElement).classList.add('open');
+    }
+
+    function closeDial() {
+      fabStack.classList.remove('open');
+      fabTrigger.setAttribute('aria-expanded', 'false');
+      if (!infoModal!.classList.contains('open') && !authorModal!.classList.contains('open')) {
+        (backdrop as HTMLElement).classList.remove('open');
+      }
+    }
+
+    fabTrigger.onclick = () => {
+      fabStack.classList.contains('open') ? closeDial() : openDial();
+    };
 
     // --- Fullscreen ---
     function syncFsIcon() {
@@ -686,6 +806,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       } else {
         document.exitFullscreen().catch(() => {});
       }
+      closeDial();
     };
 
     document.removeEventListener('fullscreenchange', syncFsIcon);
@@ -703,6 +824,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       const enabled = localStorage.getItem('verbGameSounds') !== 'false';
       localStorage.setItem('verbGameSounds', enabled ? 'false' : 'true');
       syncSoundIcon();
+      closeDial();
     };
 
     syncSoundIcon();
@@ -717,6 +839,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     function closeAll() {
       infoModal!.classList.remove('open');
       authorModal!.classList.remove('open');
+      closeDial();
       (backdrop as HTMLElement).classList.remove('open');
     }
 
@@ -732,6 +855,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         if (e.key === 'Escape') {
           document.getElementById('infoModal')?.classList.remove('open');
           document.getElementById('authorModal')?.classList.remove('open');
+          document.getElementById('fabStack')?.classList.remove('open');
+          document.getElementById('fabTrigger')?.setAttribute('aria-expanded', 'false');
           document.getElementById('fabBackdrop')?.classList.remove('open');
         }
       });
