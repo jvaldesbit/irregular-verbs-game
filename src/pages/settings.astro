@@ -103,44 +103,57 @@ import Layout from '../layouts/Layout.astro';
     setTimeout(() => { ok.style.display = 'none'; err.style.display = 'none'; }, 3000);
   }
 
+  function getCurrentForms() {
+    return {
+      present:    (document.getElementById('chkPresent') as HTMLInputElement).checked,
+      past:       (document.getElementById('chkPast') as HTMLInputElement).checked,
+      participle: (document.getElementById('chkParticiple') as HTMLInputElement).checked,
+      spanish:    (document.getElementById('chkSpanish') as HTMLInputElement).checked,
+    };
+  }
+
   function saveSettings(s: any) {
     localStorage.setItem('verbGameSettings', JSON.stringify(s));
     settings = s;
+  }
+
+  function tryAutoSave() {
+    const forms = getCurrentForms();
+    const count = Object.values(forms).filter(Boolean).length;
+    const msgErr = document.getElementById('msgErr') as HTMLElement;
+    if (count < 2) {
+      msgErr.style.display = 'block';
+      setTimeout(() => msgErr.style.display = 'none', 2500);
+      return;
+    }
+    msgErr.style.display = 'none';
+    saveSettings({ forms });
     showMsg('ok');
   }
 
+  // Auto-save on every checkbox change
+  ['chkPresent','chkPast','chkParticiple','chkSpanish'].forEach(id => {
+    document.getElementById(id)!.addEventListener('change', tryAutoSave);
+  });
+
   document.getElementById('settingsForm')!.addEventListener('submit', e => {
     e.preventDefault();
-    const s = {
-      forms: {
-        present: (document.getElementById('chkPresent') as HTMLInputElement).checked,
-        past: (document.getElementById('chkPast') as HTMLInputElement).checked,
-        participle: (document.getElementById('chkParticiple') as HTMLInputElement).checked,
-        spanish: (document.getElementById('chkSpanish') as HTMLInputElement).checked,
-      }
-    };
-    const count = Object.values(s.forms).filter(Boolean).length;
-    if (count < 2) { showMsg('err'); return; }
-    saveSettings(s);
+    tryAutoSave();
   });
 
   document.getElementById('resetBtn')!.addEventListener('click', () => {
     const s = { forms: { present: true, past: true, participle: true, spanish: true } };
     saveSettings(s);
     syncCheckboxes();
+    showMsg('ok');
   });
 
-  // Load from localStorage first, fall back to JSON
-  const saved = localStorage.getItem('verbGameSettings');
-  if (saved) {
-    settings = JSON.parse(saved);
-    syncCheckboxes();
-  } else {
-    fetch('/data/settings.json')
-      .then(r => r.json())
-      .then(s => { settings = s; syncCheckboxes(); })
-      .catch(() => syncCheckboxes());
-  }
+  // Load from localStorage
+  try {
+    const saved = localStorage.getItem('verbGameSettings');
+    if (saved) { settings = JSON.parse(saved); }
+  } catch { /* use defaults */ }
+  syncCheckboxes();
 </script>
 
 <style>

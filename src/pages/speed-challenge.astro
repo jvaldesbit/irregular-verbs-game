@@ -42,6 +42,7 @@ import Layout from '../layouts/Layout.astro';
         <div class="panel-icon">🎉</div>
         <h2>Time's Up!</h2>
         <p class="big-result">You matched <strong id="finalScore">0</strong> pairs!</p>
+        <p class="best-result">Best: <strong id="bestScore">0</strong></p>
         <button class="action-btn btn--pink" id="restartBtn">Play Again</button>
       </div>
     </main>
@@ -59,6 +60,7 @@ import Layout from '../layouts/Layout.astro';
   let matches = 0;
   let timeLeft = 60;
   let timerInterval: ReturnType<typeof setInterval>|null = null;
+  let best = parseInt(localStorage.getItem('sc_best') ?? '0', 10);
 
   async function loadData() {
     try {
@@ -179,9 +181,15 @@ import Layout from '../layouts/Layout.astro';
 
   function endGame() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    if (matches > best) {
+      best = matches;
+      localStorage.setItem('sc_best', String(best));
+    }
     (document.getElementById('gameArea') as HTMLElement).style.display = 'none';
     (document.getElementById('gameOver') as HTMLElement).style.display = 'flex';
     (document.getElementById('finalScore') as HTMLElement).textContent = String(matches);
+    const bestEl = document.getElementById('bestScore');
+    if (bestEl) bestEl.textContent = String(best);
     (document.getElementById('timer') as HTMLElement).classList.remove('warning');
   }
 
@@ -288,6 +296,12 @@ import Layout from '../layouts/Layout.astro';
 
   .big-result {
     font-size: 1.3rem !important;
+  }
+
+  .best-result {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.65);
+    font-weight: 500;
   }
 
   .action-btn {

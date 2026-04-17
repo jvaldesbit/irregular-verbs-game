@@ -10,6 +10,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="stats">
         <div class="stat-badge">Score <strong id="score">0</strong></div>
         <div class="stat-badge">🔥 <strong id="streak">0</strong></div>
+        <div class="stat-badge best-badge">Best <strong id="best">0</strong></div>
       </div>
     </header>
 
@@ -41,10 +42,20 @@ import Layout from '../layouts/Layout.astro';
   let score = 0;
   let streak = 0;
   let totalQuestions = 0;
+  let best = parseInt(localStorage.getItem('qm_best') ?? '0', 10);
+
+  function updateBest() {
+    if (score > best) {
+      best = score;
+      localStorage.setItem('qm_best', String(best));
+    }
+    (document.getElementById('best') as HTMLElement).textContent = String(best);
+  }
 
   async function loadData() {
     try {
       ({ verbs, settings } = await fetchData());
+      (document.getElementById('best') as HTMLElement).textContent = String(best);
       generateQuestion();
     } catch (e) { console.error('loadData error:', e); }
   }
@@ -135,6 +146,7 @@ import Layout from '../layouts/Layout.astro';
 
     (document.getElementById('score') as HTMLElement).textContent = String(score);
     (document.getElementById('streak') as HTMLElement).textContent = String(streak);
+    updateBest();
 
     const accuracy = (score / totalQuestions) * 100;
     (document.getElementById('progressFill') as HTMLElement).style.width = accuracy + '%';
@@ -176,6 +188,8 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     gap: 0.5rem;
   }
+
+  .best-badge { opacity: 0.72; }
 
   /* ── Game area ── */
   .game-area {
