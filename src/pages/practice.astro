@@ -82,6 +82,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
+  import { playCorrect, playWrong } from '../utils/sounds.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -167,8 +168,8 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('revealArea') as HTMLElement).style.display = 'none';
   });
 
-  document.getElementById('correctBtn')!.addEventListener('click', () => { rightCount++; updateQuizStats(); nextVerb(); });
-  document.getElementById('wrongBtn')!.addEventListener('click', () => { wrongCount++; updateQuizStats(); nextVerb(); });
+  document.getElementById('correctBtn')!.addEventListener('click', () => { playCorrect(); rightCount++; updateQuizStats(); nextVerb(); });
+  document.getElementById('wrongBtn')!.addEventListener('click', () => { playWrong(); wrongCount++; updateQuizStats(); nextVerb(); });
 
   document.addEventListener('keydown', e => {
     if (!isQuiz) {

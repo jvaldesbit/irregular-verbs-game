@@ -34,6 +34,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
+  import { playCorrect, playWrong } from '../utils/sounds.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -129,12 +130,14 @@ import Layout from '../layouts/Layout.astro';
     const msg = document.getElementById('resultMessage') as HTMLElement;
 
     if (selected === currentQuestion.correct) {
+      playCorrect();
       btn.classList.add('correct');
       msg.textContent = '✓ Correct!';
       msg.className = 'result-msg is-correct';
       score++;
       streak++;
     } else {
+      playWrong();
       btn.classList.add('wrong');
       msg.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
       msg.className = 'result-msg is-wrong';

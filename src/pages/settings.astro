@@ -59,6 +59,19 @@ import Layout from '../layouts/Layout.astro';
 
           <div class="msg success" id="msgOk" style="display:none">✓ Settings saved!</div>
           <div class="msg error" id="msgErr" style="display:none">⚠️ Select at least 2 forms.</div>
+
+          <div class="section-divider"></div>
+
+          <h2 class="section-title">🔊 Sound Effects</h2>
+          <p class="desc">Play sounds on correct and incorrect answers.</p>
+          <label class="check-row" id="rowSound">
+            <input type="checkbox" id="chkSound">
+            <span class="check-box"></span>
+            <span class="check-body">
+              <strong>Enable Sounds</strong>
+              <small>Correct ding &amp; wrong buzz</small>
+            </span>
+          </label>
         </div>
 
         <!-- Tips card -->
@@ -146,6 +159,13 @@ import Layout from '../layouts/Layout.astro';
     saveSettings(s);
     syncCheckboxes();
     showMsg('ok');
+  });
+
+  // Sound toggle
+  const chkSound = document.getElementById('chkSound') as HTMLInputElement;
+  chkSound.checked = localStorage.getItem('verbGameSounds') !== 'false';
+  chkSound.addEventListener('change', () => {
+    localStorage.setItem('verbGameSounds', chkSound.checked ? 'true' : 'false');
   });
 
   // Load from localStorage
@@ -332,6 +352,19 @@ import Layout from '../layouts/Layout.astro';
 
   .tips-card li strong { color: white; }
 
+  .section-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.2);
+    margin: 1.5rem 0 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem !important;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.35rem;
+  }
+
   @media (min-width: 700px) {
     .settings-layout { flex-direction: row; align-items: flex-start; }
     .card { flex: 2; }
@@ -342,5 +375,6 @@ import Layout from '../layouts/Layout.astro';
   @media (min-width: 1024px) {
     .game-area { padding: 1.25rem 2.5rem 5rem; }
     .card h2 { font-size: 1.5rem; }
+    .section-title { font-size: 1.2rem !important; }
   }
 </style>

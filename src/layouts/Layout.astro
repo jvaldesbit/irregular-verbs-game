@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 interface Props {
   title: string;
   description?: string;
@@ -22,6 +23,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Verb Game">
   <link rel="apple-touch-icon" href="/favicon.svg">
+
+  <ClientRouter />
 
   <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,23 +185,31 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 </style>
 
 <script>
-  const btn = document.getElementById('fsBtn');
-  const enterIcon = document.getElementById('fsEnter');
-  const exitIcon = document.getElementById('fsExit');
+  function initFs() {
+    const btn = document.getElementById('fsBtn');
+    const enterIcon = document.getElementById('fsEnter');
+    const exitIcon = document.getElementById('fsExit');
+    if (!btn || !enterIcon || !exitIcon) return;
 
-  function syncIcon() {
-    const full = !!document.fullscreenElement;
-    enterIcon!.style.display = full ? 'none' : 'block';
-    exitIcon!.style.display = full ? 'block' : 'none';
+    function syncIcon() {
+      const full = !!document.fullscreenElement;
+      enterIcon.style.display = full ? 'none' : 'block';
+      exitIcon.style.display = full ? 'block' : 'none';
+    }
+
+    btn.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+
+    document.removeEventListener('fullscreenchange', syncIcon);
+    document.addEventListener('fullscreenchange', syncIcon);
+    syncIcon();
   }
 
-  btn!.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  });
-
-  document.addEventListener('fullscreenchange', syncIcon);
+  initFs();
+  document.addEventListener('astro:page-load', initFs);
 </script>

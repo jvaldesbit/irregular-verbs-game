@@ -51,6 +51,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
+  import { playCorrect, playWrong } from '../utils/sounds.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -154,6 +155,7 @@ import Layout from '../layouts/Layout.astro';
   function checkMatch() {
     if (selectedLeft === null || selectedRight === null) return;
     if (selectedLeft === selectedRight) {
+      playCorrect();
       document.querySelectorAll<HTMLButtonElement>(`.vb-btn[data-id="${selectedLeft}"]`).forEach(b => {
         b.classList.remove('selected');
         b.classList.add('matched');
@@ -163,6 +165,7 @@ import Layout from '../layouts/Layout.astro';
       (document.getElementById('matches') as HTMLElement).textContent = String(matches);
       if (matches === gameVerbs.length) endGame();
     } else {
+      playWrong();
       document.querySelectorAll<HTMLButtonElement>('.vb-btn.selected').forEach(b => {
         b.classList.add('wrong');
         setTimeout(() => b.classList.remove('wrong', 'selected'), 500);

@@ -54,6 +54,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
+  import { playCorrect, playWrong } from '../utils/sounds.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -127,12 +128,14 @@ import Layout from '../layouts/Layout.astro';
     submitBtn.disabled = true;
 
     if (ok) {
+      playCorrect();
       score++; correctAnswers++;
       fb.textContent = '✓ Correct!';
       fb.className = 'feedback is-correct';
       input.className = 'answer-input correct';
       setTimeout(generateQuestion, 1400);
     } else {
+      playWrong();
       fb.textContent = `✗ Wrong — correct: ${currentQuestion.correct}`;
       fb.className = 'feedback is-wrong';
       input.className = 'answer-input wrong';

@@ -45,6 +45,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { loadData as fetchData } from '../utils/loadData.ts';
+  import { playCorrect, playWrong } from '../utils/sounds.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -102,7 +103,9 @@ import Layout from '../layouts/Layout.astro';
     grid.innerHTML = '';
 
     const cols = totalPairs <= 6 ? 4 : totalPairs <= 8 ? 4 : 5;
+    const rows = Math.ceil((totalPairs * 2) / cols);
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
     gameCards.forEach(card => {
       const el = document.createElement('div');
@@ -135,6 +138,7 @@ import Layout from '../layouts/Layout.astro';
     canFlip = false;
     const [first, second] = flipped;
     if (first.card.pairId === second.card.pairId) {
+      playCorrect();
       setTimeout(() => {
         first.el.classList.add('matched');
         second.el.classList.add('matched');
@@ -145,6 +149,7 @@ import Layout from '../layouts/Layout.astro';
         if (matchedPairs === totalPairs) setTimeout(endGame, 500);
       }, 400);
     } else {
+      playWrong();
       setTimeout(() => {
         first.el.classList.remove('flipped');
         second.el.classList.remove('flipped');
@@ -287,20 +292,21 @@ import Layout from '../layouts/Layout.astro';
   .cards-grid {
     flex: 1;
     display: grid;
-    gap: 0.6rem;
+    gap: 0.5rem;
     perspective: 1000px;
-    align-content: center;
+    min-height: 0;
+    overflow: hidden;
   }
 
   :global(.mem-card) {
-    aspect-ratio: 3/2;
     cursor: pointer;
     position: relative;
     border-radius: var(--r-md);
     transition: transform 0.2s;
+    min-height: 0;
   }
 
-  :global(.mem-card:hover:not(.matched)) { transform: scale(1.04); }
+  :global(.mem-card:hover:not(.matched)) { transform: scale(1.02); }
 
   :global(.card-inner) {
     width: 100%;
@@ -308,6 +314,7 @@ import Layout from '../layouts/Layout.astro';
     position: relative;
     transform-style: preserve-3d;
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 0;
   }
 
   :global(.mem-card.flipped .card-inner),
@@ -328,19 +335,20 @@ import Layout from '../layouts/Layout.astro';
   :global(.card-front) {
     background: linear-gradient(135deg, #0ea5e9, #3b82f6);
     color: rgba(255,255,255,0.6);
-    font-size: 2rem;
+    font-size: clamp(1rem, 3vw, 2rem);
     box-shadow: 0 4px 14px rgba(0,0,0,0.15);
   }
 
   :global(.card-back) {
     background: white;
     color: #0e7490;
-    font-size: 1rem;
+    font-size: clamp(0.65rem, 2vw, 1rem);
     transform: rotateY(180deg);
-    padding: 0.5rem;
+    padding: 0.35rem;
     word-break: break-word;
     text-align: center;
     box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    overflow: hidden;
   }
 
   :global(.mem-card.matched .card-back) {
