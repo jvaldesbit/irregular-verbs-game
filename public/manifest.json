@@ -1,6 +1,6 @@
 {
   "name": "Irregular Verbs Game",
-  "short_name": "Verb Game",
+  "short_name": "Verbs Game",
   "description": "Learn English irregular verbs the fun way",
   "start_url": "/",
   "display": "standalone",
@@ -23,5 +23,8 @@
     }
   ],
   "screenshots": [],
-  "categories": ["education", "games"]
+  "categories": [
+    "education",
+    "games"
+  ]
 }
