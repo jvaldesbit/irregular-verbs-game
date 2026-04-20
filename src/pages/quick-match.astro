@@ -379,15 +379,6 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'flex';
   }
 
-  document.getElementById('goSaveBtn')!.addEventListener('click', () => {
-    const name = (document.getElementById('goNameInput') as HTMLInputElement).value.trim();
-    if (!name) return;
-    const modeLabel = gameMode === 'rush' ? 'rush' : gameMode === 'endless' ? 'endless' : 'quick-match';
-    saveScore(modeLabel, score, `${score} pts · ${maxStreak} streak`, name);
-    (document.getElementById('goSaveDone') as HTMLElement).style.display = 'block';
-    (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = true;
-  });
-
   function startGame(mode: GameMode) {
     gameMode = mode;
     best = parseInt(localStorage.getItem(bestKey()) ?? '0', 10);
@@ -415,18 +406,26 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('modeSelect') as HTMLElement).style.display = 'flex';
   }
 
-  // Mode card buttons
-  document.querySelectorAll<HTMLButtonElement>('.mode-card').forEach(btn => {
-    btn.addEventListener('click', () => startGame(btn.dataset.mode as GameMode));
-  });
-
-  document.getElementById('goPlayAgain')!.addEventListener('click', () => startGame(gameMode));
-  document.getElementById('goChangeMode')!.addEventListener('click', showModeSelect);
-
   function init() {
     stopRushTimer();
     showModeSelect();
     if (!verbs.length) loadData();
+
+    document.querySelectorAll<HTMLButtonElement>('.mode-card').forEach(btn => {
+      btn.onclick = () => startGame(btn.dataset.mode as GameMode);
+    });
+
+    document.getElementById('goSaveBtn')!.onclick = () => {
+      const name = (document.getElementById('goNameInput') as HTMLInputElement).value.trim();
+      if (!name) return;
+      const modeLabel = gameMode === 'rush' ? 'rush' : gameMode === 'endless' ? 'endless' : 'quick-match';
+      saveScore(modeLabel, score, `${score} pts · ${maxStreak} streak`, name);
+      (document.getElementById('goSaveDone') as HTMLElement).style.display = 'block';
+      (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = true;
+    };
+
+    document.getElementById('goPlayAgain')!.onclick = () => startGame(gameMode);
+    document.getElementById('goChangeMode')!.onclick = showModeSelect;
   }
 
   document.addEventListener('astro:page-load', init);

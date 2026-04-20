@@ -193,35 +193,41 @@ import Layout from '../layouts/Layout.astro';
         : 'linear-gradient(90deg, #ef4444, #f87171)';
   }
 
-  document.getElementById('answerForm')!.addEventListener('submit', e => {
-    e.preventDefault();
-    const val = (document.getElementById('answerInput') as HTMLInputElement).value;
-    if (val.trim()) checkAnswer(val);
-  });
+  function init() {
+    score = 0; totalAnswered = 0; correctAnswers = 0;
+    if (!verbs.length) loadData();
 
-  document.getElementById('skipBtn')!.addEventListener('click', () => {
-    totalAnswered++;
-    updateStats();
-    generateQuestion();
-  });
+    document.getElementById('answerForm')!.onsubmit = e => {
+      e.preventDefault();
+      const val = (document.getElementById('answerInput') as HTMLInputElement).value;
+      if (val.trim()) checkAnswer(val);
+    };
 
-  document.getElementById('tmSaveBtn')!.addEventListener('click', () => {
-    const name = (document.getElementById('tmNameInput') as HTMLInputElement).value.trim();
-    if (!name) return;
-    const savedScore = parseInt((document.getElementById('sessionScore') as HTMLElement).textContent || '0');
-    const acc = (document.getElementById('sessionAcc') as HTMLElement).textContent || '0%';
-    saveScore('type-master', savedScore, `${savedScore} correct · ${acc} acc`, name);
-    (document.getElementById('tmSaveDone') as HTMLElement).style.display = 'block';
-    (document.getElementById('tmSaveBtn') as HTMLButtonElement).disabled = true;
-  });
+    document.getElementById('skipBtn')!.onclick = () => {
+      totalAnswered++;
+      updateStats();
+      generateQuestion();
+    };
 
-  document.getElementById('continueBtn')!.addEventListener('click', () => {
-    (document.getElementById('sessionOverlay') as HTMLElement).style.display = 'none';
-    updateStats();
-    generateQuestion();
-  });
+    document.getElementById('tmSaveBtn')!.onclick = () => {
+      const name = (document.getElementById('tmNameInput') as HTMLInputElement).value.trim();
+      if (!name) return;
+      const savedScore = parseInt((document.getElementById('sessionScore') as HTMLElement).textContent || '0');
+      const acc = (document.getElementById('sessionAcc') as HTMLElement).textContent || '0%';
+      saveScore('type-master', savedScore, `${savedScore} correct · ${acc} acc`, name);
+      (document.getElementById('tmSaveDone') as HTMLElement).style.display = 'block';
+      (document.getElementById('tmSaveBtn') as HTMLButtonElement).disabled = true;
+    };
 
-  loadData();
+    document.getElementById('continueBtn')!.onclick = () => {
+      (document.getElementById('sessionOverlay') as HTMLElement).style.display = 'none';
+      updateStats();
+      generateQuestion();
+    };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>

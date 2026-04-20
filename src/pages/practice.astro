@@ -172,40 +172,7 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('quizAcc') as HTMLElement).textContent = total ? acc + '%' : '—';
   }
 
-  document.getElementById('nextBtn')!.addEventListener('click', nextVerb);
-  document.getElementById('prevBtn')!.addEventListener('click', prevVerb);
-  document.getElementById('btnBrowse')!.addEventListener('click', () => switchMode(false));
-  document.getElementById('btnQuiz')!.addEventListener('click', () => switchMode(true));
-
-  document.getElementById('revealBtn')!.addEventListener('click', () => {
-    (document.getElementById('answerArea') as HTMLElement).style.display = 'flex';
-    (document.getElementById('revealArea') as HTMLElement).style.display = 'none';
-  });
-
-  document.getElementById('correctBtn')!.addEventListener('click', () => {
-    playCorrect(); rightCount++; updateQuizStats();
-    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
-    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
-    nextVerb();
-  });
-  document.getElementById('wrongBtn')!.addEventListener('click', () => {
-    playWrong(); wrongCount++; updateQuizStats();
-    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
-    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
-    nextVerb();
-  });
-
-  document.getElementById('prSaveBtn')!.addEventListener('click', () => {
-    const name = (document.getElementById('prNameInput') as HTMLInputElement).value.trim();
-    const total = rightCount + wrongCount;
-    if (!name || total === 0) return;
-    const acc = Math.round((rightCount / total) * 100);
-    saveScore('practice', acc, `${acc}% acc · ${rightCount}/${total} correct`, name);
-    (document.getElementById('prSaveDone') as HTMLElement).style.display = 'block';
-    (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = true;
-  });
-
-  document.addEventListener('keydown', e => {
+  function handleKeydown(e: KeyboardEvent) {
     if (!isQuiz) {
       if (e.key === 'ArrowRight') nextVerb();
       if (e.key === 'ArrowLeft') prevVerb();
@@ -216,9 +183,51 @@ import Layout from '../layouts/Layout.astro';
         (document.getElementById('revealBtn') as HTMLButtonElement).click();
       }
     }
-  });
+  }
 
-  loadData();
+  function init() {
+    if (!verbs.length) loadData();
+
+    document.getElementById('nextBtn')!.onclick = nextVerb;
+    document.getElementById('prevBtn')!.onclick = prevVerb;
+    document.getElementById('btnBrowse')!.onclick = () => switchMode(false);
+    document.getElementById('btnQuiz')!.onclick = () => switchMode(true);
+
+    document.getElementById('revealBtn')!.onclick = () => {
+      (document.getElementById('answerArea') as HTMLElement).style.display = 'flex';
+      (document.getElementById('revealArea') as HTMLElement).style.display = 'none';
+    };
+
+    document.getElementById('correctBtn')!.onclick = () => {
+      playCorrect(); rightCount++; updateQuizStats();
+      (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
+      (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
+      nextVerb();
+    };
+
+    document.getElementById('wrongBtn')!.onclick = () => {
+      playWrong(); wrongCount++; updateQuizStats();
+      (document.getElementById('prSaveDone') as HTMLElement).style.display = 'none';
+      (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = false;
+      nextVerb();
+    };
+
+    document.getElementById('prSaveBtn')!.onclick = () => {
+      const name = (document.getElementById('prNameInput') as HTMLInputElement).value.trim();
+      const total = rightCount + wrongCount;
+      if (!name || total === 0) return;
+      const acc = Math.round((rightCount / total) * 100);
+      saveScore('practice', acc, `${acc}% acc · ${rightCount}/${total} correct`, name);
+      (document.getElementById('prSaveDone') as HTMLElement).style.display = 'block';
+      (document.getElementById('prSaveBtn') as HTMLButtonElement).disabled = true;
+    };
+
+    document.removeEventListener('keydown', handleKeydown);
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>

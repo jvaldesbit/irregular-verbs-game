@@ -38,6 +38,14 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <div class="fab-stack" id="fabStack">
     <!-- Speed dial items (shown when open) -->
     <div class="fab-items">
+      <button class="fab-btn fab-item" id="shareBtn" title="Compartir" aria-label="Share app" style="--i:5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+      </button>
+
       <button class="fab-btn fab-item" id="fsBtn" title="Pantalla completa" aria-label="Toggle fullscreen" style="--i:4">
         <svg id="fsEnter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
@@ -150,6 +158,44 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       </div>
       <div class="mode-tip">
         💡 Ve a <strong>Settings ⚙️</strong> para elegir qué formas verbales practicar.
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Compartir">
+    <div class="modal-header">
+      <h2>📤 Compartir</h2>
+      <button class="modal-close" id="shareClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body share-body">
+      <button class="share-native-btn" id="shareNativeBtn" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+        Compartir con…
+      </button>
+
+      <div class="share-links">
+        <a id="shareWa" href="#" target="_blank" rel="noopener noreferrer" class="share-link share-link--wa">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+          </svg>
+          WhatsApp
+        </a>
+        <a id="shareSms" href="#" class="share-link share-link--sms">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          SMS
+        </a>
+      </div>
+
+      <div class="share-qr-section">
+        <p class="share-qr-label">Escanea para abrir</p>
+        <canvas id="shareQrCanvas" class="share-qr-canvas"></canvas>
       </div>
     </div>
   </div>
@@ -698,6 +744,117 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     color: #6ee7b7;
   }
 
+  /* ── Share modal ── */
+  .share-body {
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .share-native-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    border: none;
+    border-radius: var(--r-md);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity var(--t), transform var(--t);
+  }
+
+  .share-native-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .share-native-btn:active { transform: scale(0.98); }
+
+  .share-native-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .share-links {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .share-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--r-md);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: all var(--t);
+    border: 1.5px solid transparent;
+  }
+
+  .share-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .share-link--wa {
+    background: #e8faf0;
+    color: #128c4a;
+    border-color: #b7f0d1;
+  }
+
+  .share-link--wa:hover {
+    background: #d1f5e3;
+    border-color: #25D366;
+    transform: translateY(-2px);
+    box-shadow: var(--sh-sm);
+  }
+
+  .share-link--sms {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+
+  .share-link--sms:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: var(--sh-sm);
+  }
+
+  .share-qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: var(--r-md);
+    border: 1px solid #f3f4f6;
+  }
+
+  .share-qr-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #9ca3af;
+  }
+
+  .share-qr-canvas {
+    width: 180px !important;
+    height: 180px !important;
+    border-radius: var(--r-sm);
+    display: block;
+  }
+
   /* ── Shared back button ── */
   .back-btn {
     display: inline-flex;
@@ -753,24 +910,29 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 </style>
 
 <script>
+  import QRCode from 'qrcode';
+
   let _escAdded = false;
 
   function initFabs() {
-    const fabStack  = document.getElementById('fabStack');
+    const fabStack   = document.getElementById('fabStack');
     const fabTrigger = document.getElementById('fabTrigger');
-    const fsBtn     = document.getElementById('fsBtn');
-    const fsEnter   = document.getElementById('fsEnter');
-    const fsExit    = document.getElementById('fsExit');
-    const soundBtn  = document.getElementById('soundBtn');
-    const soundOn   = document.getElementById('soundOn');
-    const soundOff  = document.getElementById('soundOff');
-    const infoBtn   = document.getElementById('infoBtn');
-    const authorBtn = document.getElementById('authorBtn');
-    const infoModal = document.getElementById('infoModal');
+    const fsBtn      = document.getElementById('fsBtn');
+    const fsEnter    = document.getElementById('fsEnter');
+    const fsExit     = document.getElementById('fsExit');
+    const soundBtn   = document.getElementById('soundBtn');
+    const soundOn    = document.getElementById('soundOn');
+    const soundOff   = document.getElementById('soundOff');
+    const infoBtn    = document.getElementById('infoBtn');
+    const authorBtn  = document.getElementById('authorBtn');
+    const shareBtn   = document.getElementById('shareBtn');
+    const infoModal  = document.getElementById('infoModal');
     const authorModal = document.getElementById('authorModal');
-    const backdrop  = document.getElementById('fabBackdrop');
-    const infoClose = document.getElementById('infoClose');
+    const shareModal = document.getElementById('shareModal');
+    const backdrop   = document.getElementById('fabBackdrop');
+    const infoClose  = document.getElementById('infoClose');
     const authorClose = document.getElementById('authorClose');
+    const shareClose = document.getElementById('shareClose');
 
     if (!fsBtn || !fabStack || !fabTrigger) return;
 
@@ -784,7 +946,10 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     function closeDial() {
       fabStack.classList.remove('open');
       fabTrigger.setAttribute('aria-expanded', 'false');
-      if (!infoModal!.classList.contains('open') && !authorModal!.classList.contains('open')) {
+      const anyModalOpen = infoModal!.classList.contains('open')
+        || authorModal!.classList.contains('open')
+        || shareModal!.classList.contains('open');
+      if (!anyModalOpen) {
         (backdrop as HTMLElement).classList.remove('open');
       }
     }
@@ -839,15 +1004,42 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     function closeAll() {
       infoModal!.classList.remove('open');
       authorModal!.classList.remove('open');
+      shareModal!.classList.remove('open');
       closeDial();
       (backdrop as HTMLElement).classList.remove('open');
     }
 
-    infoBtn!.onclick    = () => openModal(infoModal as HTMLElement);
-    authorBtn!.onclick  = () => openModal(authorModal as HTMLElement);
-    infoClose!.onclick  = closeAll;
+    infoBtn!.onclick     = () => openModal(infoModal as HTMLElement);
+    authorBtn!.onclick   = () => openModal(authorModal as HTMLElement);
+    infoClose!.onclick   = closeAll;
     authorClose!.onclick = closeAll;
-    backdrop!.onclick   = closeAll;
+    shareClose!.onclick  = closeAll;
+    backdrop!.onclick    = closeAll;
+
+    // --- Share ---
+    const appUrl = window.location.origin;
+    const shareText = '¡Practica verbos irregulares en inglés de forma divertida! 🎮';
+
+    const waLink  = document.getElementById('shareWa') as HTMLAnchorElement;
+    const smsLink = document.getElementById('shareSms') as HTMLAnchorElement;
+    const nativeBtn = document.getElementById('shareNativeBtn') as HTMLButtonElement;
+
+    waLink.href  = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + appUrl)}`;
+    smsLink.href = `sms:?body=${encodeURIComponent(shareText + ' ' + appUrl)}`;
+
+    if (typeof navigator.share === 'function') {
+      nativeBtn.style.display = 'flex';
+      nativeBtn.onclick = () => {
+        navigator.share({ title: 'Irregular Verbs Game', text: shareText, url: appUrl }).catch(() => {});
+      };
+    }
+
+    shareBtn!.onclick = () => {
+      openModal(shareModal as HTMLElement);
+      closeDial();
+      const canvas = document.getElementById('shareQrCanvas') as HTMLCanvasElement;
+      QRCode.toCanvas(canvas, appUrl, { width: 180, margin: 1, color: { dark: '#1e1b4b', light: '#f9fafb' } }).catch(() => {});
+    };
 
     if (!_escAdded) {
       _escAdded = true;
@@ -855,6 +1047,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         if (e.key === 'Escape') {
           document.getElementById('infoModal')?.classList.remove('open');
           document.getElementById('authorModal')?.classList.remove('open');
+          document.getElementById('shareModal')?.classList.remove('open');
           document.getElementById('fabStack')?.classList.remove('open');
           document.getElementById('fabTrigger')?.setAttribute('aria-expanded', 'false');
           document.getElementById('fabBackdrop')?.classList.remove('open');

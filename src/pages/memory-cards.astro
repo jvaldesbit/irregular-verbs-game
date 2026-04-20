@@ -181,24 +181,29 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('finalMoves') as HTMLElement).textContent = String(moves);
   }
 
-  document.getElementById('mcSaveBtn')!.addEventListener('click', () => {
-    const name = (document.getElementById('mcNameInput') as HTMLInputElement).value.trim();
-    if (!name) return;
-    saveScore('memory-cards', totalPairs * 1000 - moves, `${totalPairs} pairs in ${moves} moves`, name);
-    (document.getElementById('mcSaveDone') as HTMLElement).style.display = 'block';
-    (document.getElementById('mcSaveBtn') as HTMLButtonElement).disabled = true;
-  });
+  function init() {
+    if (!verbs.length) loadData();
 
-  document.querySelectorAll<HTMLButtonElement>('.diff-btn').forEach(btn => {
-    btn.addEventListener('click', () => startGame(parseInt(btn.dataset.pairs!)));
-  });
+    document.querySelectorAll<HTMLButtonElement>('.diff-btn').forEach(btn => {
+      btn.onclick = () => startGame(parseInt(btn.dataset.pairs!));
+    });
 
-  document.getElementById('restartBtn')!.addEventListener('click', () => {
-    (document.getElementById('gameOver') as HTMLElement).style.display = 'none';
-    (document.getElementById('instructions') as HTMLElement).style.display = 'flex';
-  });
+    document.getElementById('restartBtn')!.onclick = () => {
+      (document.getElementById('gameOver') as HTMLElement).style.display = 'none';
+      (document.getElementById('instructions') as HTMLElement).style.display = 'flex';
+    };
 
-  loadData();
+    document.getElementById('mcSaveBtn')!.onclick = () => {
+      const name = (document.getElementById('mcNameInput') as HTMLInputElement).value.trim();
+      if (!name) return;
+      saveScore('memory-cards', totalPairs * 1000 - moves, `${totalPairs} pairs in ${moves} moves`, name);
+      (document.getElementById('mcSaveDone') as HTMLElement).style.display = 'block';
+      (document.getElementById('mcSaveBtn') as HTMLButtonElement).disabled = true;
+    };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>

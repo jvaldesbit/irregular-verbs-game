@@ -226,18 +226,23 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('timer') as HTMLElement).classList.remove('warning');
   }
 
-  document.getElementById('scSaveBtn')!.addEventListener('click', () => {
-    const name = (document.getElementById('scNameInput') as HTMLInputElement).value.trim();
-    if (!name) return;
-    saveScore('speed-challenge', matches, `${matches} pairs in 60s`, name);
-    (document.getElementById('scSaveDone') as HTMLElement).style.display = 'block';
-    (document.getElementById('scSaveBtn') as HTMLButtonElement).disabled = true;
-  });
+  function init() {
+    if (!verbs.length) loadData();
 
-  document.getElementById('startBtn')!.addEventListener('click', startGame);
-  document.getElementById('restartBtn')!.addEventListener('click', startGame);
+    document.getElementById('startBtn')!.onclick = startGame;
+    document.getElementById('restartBtn')!.onclick = startGame;
 
-  loadData();
+    document.getElementById('scSaveBtn')!.onclick = () => {
+      const name = (document.getElementById('scNameInput') as HTMLInputElement).value.trim();
+      if (!name) return;
+      saveScore('speed-challenge', matches, `${matches} pairs in 60s`, name);
+      (document.getElementById('scSaveDone') as HTMLElement).style.display = 'block';
+      (document.getElementById('scSaveBtn') as HTMLButtonElement).disabled = true;
+    };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>
