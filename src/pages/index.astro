@@ -46,6 +46,13 @@ import Layout from '../layouts/Layout.astro';
         <h2>Records</h2>
         <p>Your best scores</p>
       </a>
+
+      <a href="/universe" class="card card--universe" id="universeCard">
+        <span class="card-icon">🌐</span>
+        <h2>Universes</h2>
+        <p>Compete with your class</p>
+        <span class="universe-badge" id="universeBadge" style="display:none"></span>
+      </a>
     </main>
   </div>
 </Layout>
@@ -135,6 +142,25 @@ import Layout from '../layouts/Layout.astro';
   .card--cyan    { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
   .card--green   { background: linear-gradient(135deg, #10b981, #059669); }
   .card--gold { background: linear-gradient(135deg, #f59e0b, #b45309); }
+  .card--universe { background: linear-gradient(135deg, #1e1b4b, #312e81); position: relative; }
+
+  .universe-badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: #667eea;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 99px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   @media (min-width: 600px) {
     .grid { grid-template-columns: repeat(3, 1fr); max-width: 860px; }
@@ -152,3 +178,24 @@ import Layout from '../layouts/Layout.astro';
     .card { min-height: 180px; }
   }
 </style>
+
+<script>
+  import { getUniverseSession } from '../utils/supabase.ts';
+
+  function init() {
+    const session = getUniverseSession();
+    const badge = document.getElementById('universeBadge') as HTMLElement;
+    const card  = document.getElementById('universeCard') as HTMLAnchorElement;
+    if (session) {
+      badge.textContent = session.name;
+      badge.style.display = 'block';
+      card.href = `/universe/room?code=${session.code}`;
+    } else {
+      badge.style.display = 'none';
+      card.href = '/universe';
+    }
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>

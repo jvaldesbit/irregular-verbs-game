@@ -1,0 +1,807 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Admin — Irregular Verbs">
+  <!-- Login screen -->
+  <div class="screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h1>Admin</h1>
+      <p class="login-sub">Irregular Verbs Game</p>
+
+      <form class="login-form" id="loginForm" autocomplete="off">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required autocomplete="off" autocapitalize="off" />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required />
+        </div>
+        <div class="login-error" id="loginError" style="display:none"></div>
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span id="loginBtnText">Sign in →</span>
+          <span id="loginBtnLoading" style="display:none">Signing in…</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="screen" id="dashScreen" style="display:none">
+    <header class="dash-header">
+      <div class="dash-title">
+        <span class="dash-icon">🎮</span>
+        <span>Admin</span>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Sign out</button>
+    </header>
+
+    <div class="dash-body">
+
+      <!-- Universes panel -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Universes</h2>
+          <button class="btn-add" id="btnShowCreate">+ New</button>
+        </div>
+
+        <!-- Create form (hidden by default) -->
+        <div class="create-form" id="createForm" style="display:none">
+          <input type="text" id="newCode" placeholder="Code (e.g. ENG9B)" maxlength="12" class="code-inp" autocapitalize="characters" />
+          <input type="text" id="newName" placeholder="Name (e.g. English 9th B)" maxlength="60" class="name-inp" />
+          <div class="create-actions">
+            <button class="btn-save" id="btnCreate">Create</button>
+            <button class="btn-cancel" id="btnCancelCreate">Cancel</button>
+          </div>
+          <div class="create-error" id="createError" style="display:none"></div>
+        </div>
+
+        <div class="universe-list" id="universeList">
+          <div class="list-loading">Loading…</div>
+        </div>
+      </section>
+
+      <!-- Visitors panel -->
+      <section class="panel" id="visitorsPanel">
+        <div class="panel-header">
+          <h2>👥 Visitors <span class="visitors-badge" id="visitorsBadge"></span></h2>
+          <button class="btn-add" id="btnRefreshVisitors">↻ Refresh</button>
+        </div>
+        <div class="scores-table-wrap">
+          <table class="scores-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Device</th>
+                <th>Browser</th>
+                <th>OS</th>
+                <th>First seen</th>
+                <th>Last seen</th>
+                <th>Visits</th>
+              </tr>
+            </thead>
+            <tbody id="visitorsBody">
+              <tr><td colspan="8" class="table-loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Scores panel -->
+      <section class="panel" id="scoresPanel" style="display:none">
+        <div class="panel-header">
+          <h2>Scores — <span id="scoresPanelTitle"></span></h2>
+          <button class="btn-close-panel" id="btnCloseScores">✕</button>
+        </div>
+        <div class="scores-table-wrap">
+          <table class="scores-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Game</th>
+                <th>Score</th>
+                <th>Details</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="scoresBody">
+              <tr><td colspan="6" class="table-loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import {
+    adminLogin, adminLogout, getAdminSession,
+    getAllUniverses, createUniverse, deleteUniverse, getAllScores,
+    getAppSessions,
+  } from '../../utils/supabase.ts';
+
+  const GAME_LABELS: Record<string, string> = {
+    'quick-match': 'Quick', 'survival': 'Survival', 'endless': 'Endless',
+    'rush': 'Rush', 'speed-challenge': 'Speed', 'type-master': 'Type',
+    'memory-cards': 'Memory', 'practice': 'Practice',
+  };
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Screens ────────────────────────────────────────────────────────────────
+
+  function showLogin() {
+    (document.getElementById('loginScreen') as HTMLElement).style.display = 'flex';
+    (document.getElementById('dashScreen') as HTMLElement).style.display = 'none';
+  }
+
+  function showDash() {
+    (document.getElementById('loginScreen') as HTMLElement).style.display = 'none';
+    (document.getElementById('dashScreen') as HTMLElement).style.display = 'flex';
+    loadUniverses();
+    loadVisitors();
+  }
+
+  // ── Login ──────────────────────────────────────────────────────────────────
+
+  async function init() {
+    const session = await getAdminSession();
+    session ? showDash() : showLogin();
+
+    const form      = document.getElementById('loginForm') as HTMLFormElement;
+    const errorEl   = document.getElementById('loginError') as HTMLElement;
+    const loginBtn  = document.getElementById('loginBtn') as HTMLButtonElement;
+    const btnText   = document.getElementById('loginBtnText') as HTMLElement;
+    const btnLoad   = document.getElementById('loginBtnLoading') as HTMLElement;
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const email    = (document.getElementById('loginEmail') as HTMLInputElement).value;
+      const password = (document.getElementById('loginPassword') as HTMLInputElement).value;
+      errorEl.style.display = 'none';
+      loginBtn.disabled = true;
+      btnText.style.display = 'none';
+      btnLoad.style.display = 'inline';
+
+      const result = await adminLogin(email, password);
+
+      loginBtn.disabled = false;
+      btnText.style.display = 'inline';
+      btnLoad.style.display = 'none';
+
+      if (result.ok) {
+        showDash();
+      } else {
+        errorEl.textContent = result.error ?? 'Sign in failed.';
+        errorEl.style.display = 'block';
+      }
+    };
+
+    (document.getElementById('logoutBtn') as HTMLButtonElement).onclick = async () => {
+      await adminLogout();
+      showLogin();
+    };
+
+    bindDashEvents();
+  }
+
+  // ── Universes ──────────────────────────────────────────────────────────────
+
+  async function loadUniverses() {
+    const list = document.getElementById('universeList') as HTMLElement;
+    list.innerHTML = '<div class="list-loading">Loading…</div>';
+    const universes = await getAllUniverses();
+
+    if (!universes.length) {
+      list.innerHTML = '<div class="list-empty">No universes yet. Create one!</div>';
+      return;
+    }
+
+    list.innerHTML = universes.map(u => `
+      <div class="universe-row" data-code="${u.code}">
+        <div class="u-info">
+          <strong class="u-code">${u.code}</strong>
+          <span class="u-name">${u.name}</span>
+        </div>
+        <div class="u-actions">
+          <button class="btn-scores" data-code="${u.code}" data-name="${u.name}">Scores</button>
+          <button class="btn-copy" data-code="${u.code}" title="Copy join link">🔗</button>
+          <button class="btn-delete" data-code="${u.code}" title="Delete universe">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function bindDashEvents() {
+    const btnShowCreate   = document.getElementById('btnShowCreate') as HTMLButtonElement;
+    const createForm      = document.getElementById('createForm') as HTMLElement;
+    const btnCreate       = document.getElementById('btnCreate') as HTMLButtonElement;
+    const btnCancelCreate = document.getElementById('btnCancelCreate') as HTMLButtonElement;
+    const newCode         = document.getElementById('newCode') as HTMLInputElement;
+    const newName         = document.getElementById('newName') as HTMLInputElement;
+    const createError     = document.getElementById('createError') as HTMLElement;
+    const universeList    = document.getElementById('universeList') as HTMLElement;
+    const scoresPanel     = document.getElementById('scoresPanel') as HTMLElement;
+    const btnCloseScores  = document.getElementById('btnCloseScores') as HTMLButtonElement;
+
+    btnShowCreate.onclick = () => {
+      createForm.style.display = createForm.style.display === 'none' ? 'flex' : 'none';
+      newCode.focus();
+    };
+
+    btnCancelCreate.onclick = () => {
+      createForm.style.display = 'none';
+      newCode.value = '';
+      newName.value = '';
+      createError.style.display = 'none';
+    };
+
+    newCode.oninput = () => { newCode.value = newCode.value.toUpperCase(); };
+
+    btnCreate.onclick = async () => {
+      const code = newCode.value.trim();
+      const name = newName.value.trim();
+      if (!code || !name) return;
+      createError.style.display = 'none';
+      btnCreate.disabled = true;
+      btnCreate.textContent = 'Creating…';
+
+      const result = await createUniverse(code, name);
+
+      btnCreate.disabled = false;
+      btnCreate.textContent = 'Create';
+
+      if (result.ok) {
+        newCode.value = '';
+        newName.value = '';
+        createForm.style.display = 'none';
+        loadUniverses();
+      } else {
+        createError.textContent = result.error ?? 'Error creating universe.';
+        createError.style.display = 'block';
+      }
+    };
+
+    // Delegated events on universe list
+    universeList.onclick = async (e) => {
+      const target = e.target as HTMLElement;
+
+      if (target.classList.contains('btn-delete')) {
+        const code = target.dataset.code!;
+        if (!confirm(`Delete universe "${code}"? This will NOT delete its scores.`)) return;
+        target.textContent = '…';
+        (target as HTMLButtonElement).disabled = true;
+        await deleteUniverse(code);
+        loadUniverses();
+      }
+
+      if (target.classList.contains('btn-scores')) {
+        const code = target.dataset.code!;
+        const name = target.dataset.name!;
+        openScoresPanel(code, name);
+      }
+
+      if (target.classList.contains('btn-copy')) {
+        const code = target.dataset.code!;
+        const url  = `${window.location.origin}/universe/room?code=${code}`;
+        navigator.clipboard.writeText(url).then(() => {
+          target.textContent = '✓';
+          setTimeout(() => { target.textContent = '🔗'; }, 1500);
+        });
+      }
+    };
+
+    btnCloseScores.onclick = () => {
+      scoresPanel.style.display = 'none';
+    };
+
+    (document.getElementById('btnRefreshVisitors') as HTMLButtonElement).onclick = loadVisitors;
+  }
+
+  // ── Visitors panel ─────────────────────────────────────────────────────────
+
+  async function loadVisitors() {
+    const tbody = document.getElementById('visitorsBody') as HTMLElement;
+    const badge = document.getElementById('visitorsBadge') as HTMLElement;
+    tbody.innerHTML = '<tr><td colspan="8" class="table-loading">Loading…</td></tr>';
+
+    const sessions = await getAppSessions();
+    badge.textContent = sessions.length ? `${sessions.length}` : '';
+
+    if (!sessions.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="table-empty">No visitors yet.</td></tr>';
+      return;
+    }
+
+    const DEVICE_ICON: Record<string, string> = { mobile: '📱', tablet: '📟', desktop: '💻' };
+
+    tbody.innerHTML = sessions.map((s, i) => `
+      <tr>
+        <td class="td-rank">${i + 1}</td>
+        <td class="td-name">${s.player_name ? `<strong>${s.player_name}</strong>` : '<span style="color:rgba(255,255,255,0.25)">—</span>'}</td>
+        <td class="td-game">${DEVICE_ICON[s.device_type ?? ''] ?? ''} ${s.device_type ?? '—'}</td>
+        <td class="td-game">${s.browser ?? '—'}</td>
+        <td class="td-game">${s.os ?? '—'}</td>
+        <td class="td-date">${fmtDate(s.first_seen)}</td>
+        <td class="td-date">${fmtDate(s.last_seen)}</td>
+        <td class="td-score"><strong>${s.visit_count}</strong></td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Scores panel ───────────────────────────────────────────────────────────
+
+  async function openScoresPanel(code: string, name: string) {
+    const panel = document.getElementById('scoresPanel') as HTMLElement;
+    const title = document.getElementById('scoresPanelTitle') as HTMLElement;
+    const tbody = document.getElementById('scoresBody') as HTMLElement;
+
+    title.textContent = `${name} (${code})`;
+    tbody.innerHTML = '<tr><td colspan="6" class="table-loading">Loading…</td></tr>';
+    panel.style.display = 'flex';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const scores = await getAllScores(code);
+
+    if (!scores.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No scores yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = scores.map((s, i) => `
+      <tr>
+        <td class="td-rank">${i + 1}</td>
+        <td class="td-name">${s.player_name}<br><small>${s.player_email}</small></td>
+        <td class="td-game">${GAME_LABELS[s.game] ?? s.game}</td>
+        <td class="td-score"><strong>${s.score}</strong></td>
+        <td class="td-details">${s.details ?? '—'}</td>
+        <td class="td-date">${fmtDate(s.created_at)}</td>
+      </tr>
+    `).join('');
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>
+
+<style is:global>
+  /* ── Reset screens ── */
+  .screen {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Login ── */
+  #loginScreen {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
+    padding: 1.5rem;
+  }
+
+  .login-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .login-icon { font-size: 2.5rem; margin-bottom: 0.25rem; }
+
+  .login-card h1 {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+
+  .login-sub {
+    color: rgba(255,255,255,0.45);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-top: 0.75rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .field input {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    outline: none;
+    transition: border-color var(--t);
+  }
+
+  .field input:focus { border-color: #667eea; }
+
+  .login-error {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f87171;
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: var(--r-sm);
+    padding: 0.55rem 0.85rem;
+    text-align: center;
+  }
+
+  .btn-login {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: var(--r-md);
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 0.25rem;
+    transition: opacity var(--t), transform var(--t);
+  }
+
+  .btn-login:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-login:active { transform: scale(0.98); }
+  .btn-login:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+  /* ── Dashboard ── */
+  #dashScreen {
+    background: #0f172a;
+    flex-direction: column;
+  }
+
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+    background: #1e293b;
+  }
+
+  .dash-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .dash-icon { font-size: 1.3rem; }
+
+  .btn-logout {
+    padding: 0.45rem 0.9rem;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.6);
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-logout:hover { background: rgba(255,255,255,0.12); color: white; }
+
+  .dash-body {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .panel-header h2 {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-add {
+    padding: 0.4rem 0.85rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity var(--t);
+  }
+
+  .btn-add:hover { opacity: 0.85; }
+
+  .btn-close-panel {
+    padding: 0.3rem 0.65rem;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-close-panel:hover { color: white; background: rgba(255,255,255,0.12); }
+
+  /* ── Create form ── */
+  .create-form {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-start;
+    background: rgba(102,126,234,0.07);
+  }
+
+  .code-inp, .name-inp {
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.6rem 0.85rem;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.06);
+    color: white;
+    outline: none;
+    transition: border-color var(--t);
+  }
+
+  .code-inp:focus, .name-inp:focus { border-color: #667eea; }
+  .code-inp { width: 120px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .name-inp { flex: 1; min-width: 180px; }
+
+  .create-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+  .btn-save {
+    padding: 0.6rem 1.1rem;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity var(--t);
+  }
+
+  .btn-save:hover { opacity: 0.85; }
+  .btn-save:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-cancel {
+    padding: 0.6rem 0.85rem;
+    background: transparent;
+    color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-cancel:hover { color: white; border-color: rgba(255,255,255,0.3); }
+
+  .create-error {
+    width: 100%;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #f87171;
+    padding: 0.4rem 0;
+  }
+
+  /* ── Universe rows ── */
+  .list-loading, .list-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: rgba(255,255,255,0.35);
+    font-size: 0.88rem;
+  }
+
+  .universe-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 1rem;
+    transition: background var(--t);
+  }
+
+  .universe-row:last-child { border-bottom: none; }
+  .universe-row:hover { background: rgba(255,255,255,0.03); }
+
+  .u-info { display: flex; align-items: center; gap: 0.85rem; flex: 1; min-width: 0; }
+
+  .u-code {
+    color: #a5b4fc;
+    font-size: 0.88rem;
+    font-weight: 800;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    background: rgba(165,180,252,0.12);
+    padding: 0.25rem 0.55rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .u-name {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .u-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+  .btn-scores, .btn-copy, .btn-delete {
+    padding: 0.38rem 0.75rem;
+    border-radius: var(--r-sm);
+    border: none;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-scores {
+    background: rgba(102,126,234,0.2);
+    color: #a5b4fc;
+  }
+  .btn-scores:hover { background: rgba(102,126,234,0.35); }
+
+  .btn-copy {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.55);
+  }
+  .btn-copy:hover { background: rgba(255,255,255,0.14); color: white; }
+
+  .btn-delete {
+    background: rgba(239,68,68,0.1);
+    color: #f87171;
+  }
+  .btn-delete:hover { background: rgba(239,68,68,0.25); }
+
+  /* ── Scores table ── */
+  .scores-table-wrap {
+    overflow-x: auto;
+  }
+
+  .scores-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .scores-table thead {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .scores-table th {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    white-space: nowrap;
+  }
+
+  .scores-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.75);
+    vertical-align: middle;
+  }
+
+  .scores-table tbody tr:last-child td { border-bottom: none; }
+  .scores-table tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+  .td-rank { color: rgba(255,255,255,0.35); font-size: 0.78rem; font-weight: 700; }
+  .td-name strong { color: white; display: block; }
+  .td-name small { color: rgba(255,255,255,0.35); font-size: 0.72rem; }
+  .td-score strong { color: #a5b4fc; font-size: 1rem; font-weight: 900; }
+  .td-game { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+  .td-details { color: rgba(255,255,255,0.4); font-size: 0.78rem; max-width: 150px; }
+  .td-date { color: rgba(255,255,255,0.35); font-size: 0.78rem; white-space: nowrap; }
+
+  .table-loading, .table-empty {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .visitors-badge {
+    display: inline-block;
+    background: rgba(102,126,234,0.25);
+    color: #a5b4fc;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.15rem 0.55rem;
+    border-radius: 99px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  @media (min-width: 600px) {
+    .dash-body { padding: 2rem; }
+  }
+</style>

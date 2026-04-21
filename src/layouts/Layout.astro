@@ -38,7 +38,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <div class="fab-stack" id="fabStack">
     <!-- Speed dial items (shown when open) -->
     <div class="fab-items">
-      <button class="fab-btn fab-item" id="shareBtn" title="Compartir" aria-label="Share app" style="--i:5">
+      <button class="fab-btn fab-item" id="shareBtn" title="Share" aria-label="Share app" style="--i:5">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
           <polyline points="16 6 12 2 8 6"/>
@@ -46,7 +46,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         </svg>
       </button>
 
-      <button class="fab-btn fab-item" id="fsBtn" title="Pantalla completa" aria-label="Toggle fullscreen" style="--i:4">
+      <button class="fab-btn fab-item" id="fsBtn" title="Full screen" aria-label="Toggle fullscreen" style="--i:4">
         <svg id="fsEnter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
         </svg>
@@ -55,7 +55,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         </svg>
       </button>
 
-      <button class="fab-btn fab-item" id="soundBtn" title="Sonido" aria-label="Toggle sound" style="--i:3">
+      <button class="fab-btn fab-item" id="soundBtn" title="Sound" aria-label="Toggle sound" style="--i:3">
         <svg id="soundOn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
           <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
@@ -67,7 +67,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         </svg>
       </button>
 
-      <button class="fab-btn fab-item" id="infoBtn" title="¿Cómo jugar?" aria-label="How to play" style="--i:2">
+      <button class="fab-btn fab-item" id="infoBtn" title="How to play" aria-label="How to play" style="--i:2">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -75,7 +75,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
         </svg>
       </button>
 
-      <button class="fab-btn fab-item" id="authorBtn" title="Sobre el autor" aria-label="About author" style="--i:1">
+      <button class="fab-btn fab-item" id="authorBtn" title="About" aria-label="About author" style="--i:1">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
@@ -91,7 +91,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     </div>
 
     <!-- Trigger button -->
-    <button class="fab-trigger" id="fabTrigger" aria-label="Abrir menú" aria-expanded="false">
+    <button class="fab-trigger" id="fabTrigger" aria-label="Open menu" aria-expanded="false">
       <svg class="fab-trigger-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/>
         <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
@@ -115,58 +115,58 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <div class="fab-backdrop" id="fabBackdrop"></div>
 
   <!-- Info Modal -->
-  <div class="fab-modal" id="infoModal" role="dialog" aria-modal="true" aria-label="Cómo jugar">
+  <div class="fab-modal" id="infoModal" role="dialog" aria-modal="true" aria-label="How to play">
     <div class="modal-header">
-      <h2>🎮 Cómo jugar</h2>
-      <button class="modal-close" id="infoClose" aria-label="Cerrar">✕</button>
+      <h2>🎮 How to play</h2>
+      <button class="modal-close" id="infoClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
       <div class="mode-item">
         <span class="mode-emoji">⚡</span>
         <div>
           <strong>Quick Match</strong>
-          <p>4 opciones para elegir la forma correcta del verbo. Rápido y directo.</p>
+          <p>4 options to choose the correct verb form. Fast and direct.</p>
         </div>
       </div>
       <div class="mode-item">
         <span class="mode-emoji">🏃</span>
         <div>
           <strong>Speed Challenge</strong>
-          <p>60 segundos para emparejar verbos entre dos columnas. ¡Cuantos más, mejor!</p>
+          <p>60 seconds to match verbs between two columns. The more the better!</p>
         </div>
       </div>
       <div class="mode-item">
         <span class="mode-emoji">⌨️</span>
         <div>
           <strong>Type Master</strong>
-          <p>Escribe la forma del verbo correctamente. Ideal para practicar ortografía.</p>
+          <p>Type the correct verb form. Great for practicing spelling.</p>
         </div>
       </div>
       <div class="mode-item">
         <span class="mode-emoji">🃏</span>
         <div>
           <strong>Memory Cards</strong>
-          <p>Voltea tarjetas para encontrar los pares de verbos. 6, 8 o 10 pares.</p>
+          <p>Flip cards to find matching verb pairs. 6, 8 or 10 pairs.</p>
         </div>
       </div>
       <div class="mode-item">
         <span class="mode-emoji">♾️</span>
         <div>
           <strong>Practice</strong>
-          <p>Navega o autoevalúate con todos los verbos a tu propio ritmo.</p>
+          <p>Browse or self-quiz all verbs at your own pace.</p>
         </div>
       </div>
       <div class="mode-tip">
-        💡 Ve a <strong>Settings ⚙️</strong> para elegir qué formas verbales practicar.
+        💡 Go to <strong>Settings ⚙️</strong> to choose which verb forms to practice.
       </div>
     </div>
   </div>
 
   <!-- Share Modal -->
-  <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Compartir">
+  <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Share">
     <div class="modal-header">
-      <h2>📤 Compartir</h2>
-      <button class="modal-close" id="shareClose" aria-label="Cerrar">✕</button>
+      <h2>📤 Share</h2>
+      <button class="modal-close" id="shareClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body share-body">
       <button class="share-native-btn" id="shareNativeBtn" style="display:none">
@@ -175,7 +175,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
           <polyline points="16 6 12 2 8 6"/>
           <line x1="12" y1="2" x2="12" y2="15"/>
         </svg>
-        Compartir con…
+        Share with…
       </button>
 
       <div class="share-links">
@@ -194,17 +194,17 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       </div>
 
       <div class="share-qr-section">
-        <p class="share-qr-label">Escanea para abrir</p>
+        <p class="share-qr-label">Scan to open</p>
         <canvas id="shareQrCanvas" class="share-qr-canvas"></canvas>
       </div>
     </div>
   </div>
 
   <!-- Author Modal -->
-  <div class="fab-modal" id="authorModal" role="dialog" aria-modal="true" aria-label="Sobre el autor">
+  <div class="fab-modal" id="authorModal" role="dialog" aria-modal="true" aria-label="About the author">
     <div class="modal-header">
-      <h2>👤 Autor</h2>
-      <button class="modal-close" id="authorClose" aria-label="Cerrar">✕</button>
+      <h2>👤 About</h2>
+      <button class="modal-close" id="authorClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body author-body">
       <img
@@ -218,7 +218,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       <h3 class="author-name">Julián Camilo Valdés Bello</h3>
       <span class="author-role">Tech Lead &amp; Software Architect · OMNI.PRO</span>
       <p class="author-bio">
-        Software specialist con 8+ años de experiencia en microservicios, infraestructura cloud e integración de IA. Creé este juego para hacer más divertido el aprendizaje de los verbos irregulares en inglés.
+        Software specialist with 8+ years of experience in microservices, cloud infrastructure and AI integration. I built this game to make learning English irregular verbs more fun.
       </p>
       <div class="author-links">
         <a href="https://jcvb.com.co" target="_blank" rel="noopener noreferrer" class="author-link">
@@ -239,7 +239,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
           </svg>
-          Repo del proyecto
+          Project repo
         </a>
       </div>
     </div>
@@ -1018,7 +1018,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
     // --- Share ---
     const appUrl = window.location.origin;
-    const shareText = '¡Practica verbos irregulares en inglés de forma divertida! 🎮';
+    const shareText = 'Practice English irregular verbs the fun way! 🎮';
 
     const waLink  = document.getElementById('shareWa') as HTMLAnchorElement;
     const smsLink = document.getElementById('shareSms') as HTMLAnchorElement;
@@ -1064,4 +1064,57 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   initFabs();
   setYear();
   document.addEventListener('astro:page-load', () => { initFabs(); setYear(); });
+</script>
+
+<script>
+  import { trackAppSession } from '../utils/supabase.ts';
+
+  const SID_KEY  = 'verbGame_sid';
+  const NAME_KEY = 'verbGamePlayerName';
+
+  function getOrCreateSid(): string {
+    let sid = localStorage.getItem(SID_KEY);
+    if (!sid) {
+      sid = crypto.randomUUID();
+      localStorage.setItem(SID_KEY, sid);
+    }
+    return sid;
+  }
+
+  function parseDevice(ua: string): string {
+    if (/Mobi|Android/i.test(ua) && !/iPad/i.test(ua)) return 'mobile';
+    if (/iPad|Tablet/i.test(ua)) return 'tablet';
+    return 'desktop';
+  }
+
+  function parseBrowser(ua: string): string {
+    if (/Edg\//i.test(ua)) return 'Edge';
+    if (/OPR|Opera/i.test(ua)) return 'Opera';
+    if (/Chrome/i.test(ua)) return 'Chrome';
+    if (/Firefox/i.test(ua)) return 'Firefox';
+    if (/Safari/i.test(ua)) return 'Safari';
+    return 'Other';
+  }
+
+  function parseOS(ua: string): string {
+    if (/iPhone/i.test(ua)) return 'iOS';
+    if (/iPad/i.test(ua)) return 'iPadOS';
+    if (/Android/i.test(ua)) return 'Android';
+    if (/Mac OS X/i.test(ua)) return 'macOS';
+    if (/Windows/i.test(ua)) return 'Windows';
+    if (/Linux/i.test(ua)) return 'Linux';
+    return 'Other';
+  }
+
+  function track() {
+    try {
+      const sid    = getOrCreateSid();
+      const name   = localStorage.getItem(NAME_KEY) ?? '';
+      const ua     = navigator.userAgent;
+      trackAppSession(sid, name, parseDevice(ua), parseBrowser(ua), parseOS(ua));
+    } catch {}
+  }
+
+  track();
+  document.addEventListener('astro:page-load', track);
 </script>
