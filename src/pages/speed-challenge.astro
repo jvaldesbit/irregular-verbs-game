@@ -61,6 +61,7 @@ import Layout from '../layouts/Layout.astro';
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
+  import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
 
   const PAIR_COLORS = [
     ['#6366f1','#4338ca'],
@@ -224,6 +225,10 @@ import Layout from '../layouts/Layout.astro';
     const bestEl = document.getElementById('bestScore');
     if (bestEl) bestEl.textContent = String(best);
     (document.getElementById('timer') as HTMLElement).classList.remove('warning');
+
+    if (getUniverseSession()) {
+      saveUniverseScore('speed-challenge', matches, `${matches} pairs in 60s`);
+    }
   }
 
   function init() {

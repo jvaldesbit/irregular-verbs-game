@@ -1,0 +1,359 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Universes - Irregular Verbs">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1>🌐 Universes</h1>
+      <div class="top-spacer"></div>
+    </header>
+
+    <main class="main">
+      <!-- Active session banner -->
+      <div class="session-banner" id="sessionBanner" style="display:none">
+        <div class="session-info">
+          <span class="session-label">Active universe</span>
+          <strong id="sessionUniverseName"></strong>
+          <span id="sessionPlayerName" class="session-player"></span>
+        </div>
+        <div class="session-actions">
+          <a id="sessionGoBtn" href="#" class="btn-go">View universe →</a>
+          <button id="sessionLeaveBtn" class="btn-leave">Leave</button>
+        </div>
+      </div>
+
+      <!-- Join form -->
+      <div class="card" id="joinCard">
+        <div class="card-icon">🌐</div>
+        <h2>Join a universe</h2>
+        <p class="card-desc">Enter the code your teacher gave you to compete with your class.</p>
+
+        <form class="form" id="joinForm" autocomplete="off">
+          <div class="field">
+            <label for="fieldName">Your name</label>
+            <input type="text" id="fieldName" placeholder="E.g. Maria Garcia" maxlength="32" required autocomplete="off" autocapitalize="words" />
+          </div>
+          <div class="field">
+            <label for="fieldEmail">Your email</label>
+            <input type="email" id="fieldEmail" placeholder="you@example.com" required autocomplete="off" autocapitalize="off" />
+          </div>
+          <div class="field">
+            <label for="fieldCode">Universe code</label>
+            <input type="text" id="fieldCode" placeholder="E.g. ENG9B" maxlength="12" required autocomplete="off" autocapitalize="characters" class="code-input" />
+          </div>
+
+          <div class="error-msg" id="errorMsg" style="display:none"></div>
+
+          <button type="submit" class="btn-join" id="joinBtn">
+            <span id="joinBtnText">Join →</span>
+            <span id="joinBtnLoading" style="display:none">Looking up…</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="divider">Are you a teacher?</div>
+      <p class="teacher-hint">Create a universe from the <a href="https://supabase.com/dashboard/project/fjifxqxdjckxutmoqkmg" target="_blank" rel="noopener">dashboard</a> or ask Julián to create one for you.</p>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { joinUniverse, getUniverseSession, clearUniverseSession } from '../../utils/supabase.ts';
+
+  function init() {
+    const session = getUniverseSession();
+    const banner  = document.getElementById('sessionBanner') as HTMLElement;
+    const nameEl  = document.getElementById('sessionUniverseName') as HTMLElement;
+    const playerEl = document.getElementById('sessionPlayerName') as HTMLElement;
+    const goBtn   = document.getElementById('sessionGoBtn') as HTMLAnchorElement;
+    const leaveBtn = document.getElementById('sessionLeaveBtn') as HTMLButtonElement;
+    const form    = document.getElementById('joinForm') as HTMLFormElement;
+    const errorMsg = document.getElementById('errorMsg') as HTMLElement;
+    const joinBtn = document.getElementById('joinBtn') as HTMLButtonElement;
+    const joinBtnText = document.getElementById('joinBtnText') as HTMLElement;
+    const joinBtnLoading = document.getElementById('joinBtnLoading') as HTMLElement;
+    const fieldCode = document.getElementById('fieldCode') as HTMLInputElement;
+
+    if (session) {
+      banner.style.display = 'flex';
+      nameEl.textContent   = session.name;
+      playerEl.textContent = session.playerName;
+      goBtn.href = `/universe/room?code=${session.code}`;
+    }
+
+    leaveBtn.onclick = () => {
+      clearUniverseSession();
+      banner.style.display = 'none';
+    };
+
+    fieldCode.oninput = () => {
+      fieldCode.value = fieldCode.value.toUpperCase();
+    };
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const name  = (document.getElementById('fieldName') as HTMLInputElement).value.trim();
+      const email = (document.getElementById('fieldEmail') as HTMLInputElement).value.trim();
+      const code  = fieldCode.value.trim();
+
+      errorMsg.style.display = 'none';
+      joinBtn.disabled = true;
+      joinBtnText.style.display = 'none';
+      joinBtnLoading.style.display = 'inline';
+
+      const result = await joinUniverse(code, name, email);
+
+      joinBtn.disabled = false;
+      joinBtnText.style.display = 'inline';
+      joinBtnLoading.style.display = 'none';
+
+      if (result.ok && result.universe) {
+        window.location.href = `/universe/room?code=${result.universe.code}`;
+      } else {
+        errorMsg.textContent = result.error ?? 'Could not join universe.';
+        errorMsg.style.display = 'block';
+      }
+    };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .top-spacer { width: 80px; }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1.25rem 5rem;
+    gap: 1.25rem;
+  }
+
+  /* Session banner */
+  .session-banner {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-lg);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .session-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .session-info strong {
+    color: white;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .session-player {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+  }
+
+  .session-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .btn-go {
+    padding: 0.5rem 1rem;
+    background: white;
+    color: #1e1b4b;
+    border-radius: var(--r-sm);
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: opacity var(--t);
+  }
+
+  .btn-go:hover { opacity: 0.88; }
+
+  .btn-leave {
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: var(--r-sm);
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-leave:hover { background: rgba(255,255,255,0.2); color: white; }
+
+  /* Join card */
+  .card {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    border-radius: var(--r-xl);
+    padding: 2rem 1.75rem;
+    box-shadow: var(--sh-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .card-icon { font-size: 2.5rem; line-height: 1; }
+
+  .card h2 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #1e1b4b;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  .form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .field input {
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--r-md);
+    outline: none;
+    color: #1e1b4b;
+    transition: border-color var(--t);
+    background: #f9fafb;
+  }
+
+  .field input:focus { border-color: #667eea; background: white; }
+
+  .code-input {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 1.3rem !important;
+    text-align: center;
+  }
+
+  .error-msg {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--r-sm);
+    padding: 0.6rem 0.85rem;
+    text-align: center;
+  }
+
+  .btn-join {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: var(--r-md);
+    font-family: var(--font);
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: opacity var(--t), transform var(--t);
+    margin-top: 0.25rem;
+  }
+
+  .btn-join:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-join:active { transform: scale(0.98); }
+  .btn-join:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+  .divider {
+    color: rgba(255,255,255,0.45);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .teacher-hint {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+
+  .teacher-hint a {
+    color: rgba(255,255,255,0.75);
+    font-weight: 700;
+  }
+</style>

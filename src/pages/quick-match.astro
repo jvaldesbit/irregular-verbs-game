@@ -60,6 +60,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="options-grid" id="optionsGrid"></div>
 
       <div class="result-msg" id="resultMessage"></div>
+      <button class="finish-btn" id="finishBtn">⏹ Finish</button>
     </main>
 
     <!-- Game Over panel -->
@@ -96,6 +97,7 @@ import Layout from '../layouts/Layout.astro';
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
+  import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
 
   // Rush: time per question in seconds per level (every 10 correct = next level)
   const RUSH_TIMES = [300, 240, 180, 120, 90, 60, 45, 30, 20, 15, 10];
@@ -136,7 +138,7 @@ import Layout from '../layouts/Layout.astro';
 
   function showBonus() {
     const el = document.getElementById('bonusMsg') as HTMLElement;
-    el.textContent = '+1 vida 🎉';
+    el.textContent = '+1 life 🎉';
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2000);
   }
@@ -318,13 +320,14 @@ import Layout from '../layouts/Layout.astro';
         lives++;
         renderLives();
         showBonus();
-        msg.textContent = `✓ Correct! +1 vida bonus 🎉`;
+        msg.textContent = `✓ Correct! +1 life bonus 🎉`;
       } else {
         msg.textContent = gameMode === 'rush'
           ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())} ⏱️`
           : `✓ Correct! 🔥 ${streak}`;
       }
       msg.className = 'result-msg is-correct';
+
 
       (document.getElementById('score') as HTMLElement).textContent = String(score);
       (document.getElementById('streak') as HTMLElement).textContent = String(streak);
@@ -377,6 +380,12 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('goSaveDone') as HTMLElement).style.display = 'none';
     (document.getElementById('goSaveBtn') as HTMLButtonElement).disabled = false;
     (document.getElementById('gameOverPanel') as HTMLElement).style.display = 'flex';
+
+    const uSession = getUniverseSession();
+    if (uSession) {
+      const modeLabel = gameMode === 'rush' ? 'rush' : gameMode === 'endless' ? 'endless' : 'quick-match';
+      saveUniverseScore(modeLabel, score, `${score} pts · ${maxStreak} streak`);
+    }
   }
 
   function startGame(mode: GameMode) {
@@ -426,6 +435,7 @@ import Layout from '../layouts/Layout.astro';
 
     document.getElementById('goPlayAgain')!.onclick = () => startGame(gameMode);
     document.getElementById('goChangeMode')!.onclick = showModeSelect;
+    document.getElementById('finishBtn')!.onclick = () => { stopRushTimer(); gameOver(); };
   }
 
   document.addEventListener('astro:page-load', init);
@@ -916,6 +926,28 @@ import Layout from '../layouts/Layout.astro';
 
   .result-msg.is-correct { color: #6ee7b7; }
   .result-msg.is-wrong   { color: #fca5a5; }
+
+  /* ── Finish button ── */
+  .finish-btn {
+    align-self: center;
+    padding: 0.45rem 1.25rem;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    border-radius: 99px;
+    color: rgba(255,255,255,0.55);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--t);
+    flex-shrink: 0;
+  }
+
+  .finish-btn:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.85);
+  }
 
   /* ── Responsive ── */
   @media (min-width: 600px) {

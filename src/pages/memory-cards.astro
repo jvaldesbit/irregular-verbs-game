@@ -58,6 +58,7 @@ import Layout from '../layouts/Layout.astro';
   import { loadData as fetchData } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
+  import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
 
   let verbs: any[] = [];
   let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
@@ -179,6 +180,10 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('cardsGrid') as HTMLElement).style.display = 'none';
     (document.getElementById('gameOver') as HTMLElement).style.display = 'flex';
     (document.getElementById('finalMoves') as HTMLElement).textContent = String(moves);
+
+    if (getUniverseSession()) {
+      saveUniverseScore('memory-cards', totalPairs * 1000 - moves, `${totalPairs} pairs in ${moves} moves`);
+    }
   }
 
   function init() {

@@ -1,0 +1,419 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Universo - Irregular Verbs">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/universe" class="back-btn">← Universes</a>
+      <div class="header-center">
+        <h1 id="universeName">🌐 …</h1>
+        <span class="player-badge" id="playerBadge"></span>
+      </div>
+      <div class="top-spacer"></div>
+    </header>
+
+    <!-- Access denied (no session or wrong code) -->
+    <div class="no-access" id="noAccess" style="display:none">
+      <div class="no-access-icon">🔒</div>
+      <p>You need to join this universe first.</p>
+      <a href="/universe" class="btn-join-now">Join →</a>
+    </div>
+
+    <!-- Content (shown when session is valid) -->
+    <div class="content" id="content" style="display:none">
+
+      <!-- Game selector -->
+      <section class="section">
+        <h2 class="section-title">Play and earn points</h2>
+        <div class="game-grid">
+          <a href="/quick-match" class="game-card game-card--purple">
+            <span>🎯</span><strong>Quick Match</strong>
+          </a>
+          <a href="/speed-challenge" class="game-card game-card--pink">
+            <span>⚡</span><strong>Speed Challenge</strong>
+          </a>
+          <a href="/type-master" class="game-card game-card--indigo">
+            <span>⌨️</span><strong>Type Master</strong>
+          </a>
+          <a href="/memory-cards" class="game-card game-card--cyan">
+            <span>🃏</span><strong>Memory Cards</strong>
+          </a>
+        </div>
+      </section>
+
+      <!-- Filter tabs -->
+      <section class="section">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-game="">All</button>
+          <button class="tab" data-game="quick-match">Quick</button>
+          <button class="tab" data-game="rush">Rush</button>
+          <button class="tab" data-game="speed-challenge">Speed</button>
+          <button class="tab" data-game="type-master">Type</button>
+          <button class="tab" data-game="memory-cards">Memory</button>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard" id="leaderboard">
+          <div class="loading-row">Loading…</div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { getUniverseSession, getLeaderboard, supabase } from '../../utils/supabase.ts';
+
+  const GAME_LABELS: Record<string, string> = {
+    'quick-match': 'Quick',
+    'survival': 'Survival',
+    'endless': 'Endless',
+    'rush': 'Rush',
+    'speed-challenge': 'Speed',
+    'type-master': 'Type',
+    'memory-cards': 'Memory',
+    'practice': 'Practice',
+  };
+
+  const MEDAL = ['🥇', '🥈', '🥉'];
+
+  let currentGame = '';
+  let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+  }
+
+  function renderLeaderboard(scores: any[], playerEmail: string) {
+    const el = document.getElementById('leaderboard') as HTMLElement;
+    if (!scores.length) {
+      el.innerHTML = '<div class="empty-row">No scores yet — be the first! 🚀</div>';
+      return;
+    }
+
+    el.innerHTML = scores.map((s, i) => `
+      <div class="lb-row ${s.player_email === playerEmail ? 'lb-row--me' : ''}">
+        <span class="lb-rank">${MEDAL[i] ?? `#${i + 1}`}</span>
+        <div class="lb-player">
+          <strong>${s.player_name}</strong>
+          <span>${GAME_LABELS[s.game] ?? s.game} · ${formatDate(s.created_at)}</span>
+        </div>
+        <div class="lb-score">
+          <strong>${s.score}</strong>
+          <span>${s.details ?? ''}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function loadScores(code: string, game: string, playerEmail: string) {
+    const scores = await getLeaderboard(code, game || undefined);
+    renderLeaderboard(scores, playerEmail);
+  }
+
+  function subscribeRealtime(code: string, game: string, playerEmail: string) {
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+
+    realtimeChannel = supabase
+      .channel(`universe_scores:${code}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'universe_scores',
+        filter: `universe_code=eq.${code}`,
+      }, () => loadScores(code, game, playerEmail))
+      .subscribe();
+  }
+
+  function init() {
+    const session = getUniverseSession();
+    const pathCode = new URLSearchParams(window.location.search).get('code')?.toUpperCase() ?? '';
+
+    const noAccess = document.getElementById('noAccess') as HTMLElement;
+    const content  = document.getElementById('content') as HTMLElement;
+
+    if (!session || session.code !== pathCode) {
+      noAccess.style.display = 'flex';
+      content.style.display  = 'none';
+      return;
+    }
+
+    noAccess.style.display = 'none';
+    content.style.display  = 'flex';
+
+    (document.getElementById('universeName') as HTMLElement).textContent = `🌐 ${session.name}`;
+    (document.getElementById('playerBadge') as HTMLElement).textContent  = session.playerName;
+
+    loadScores(session.code, currentGame, session.playerEmail);
+    subscribeRealtime(session.code, currentGame, session.playerEmail);
+
+    const tabs = document.getElementById('tabs') as HTMLElement;
+    tabs.onclick = (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.tab');
+      if (!btn) return;
+      tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentGame = btn.dataset.game ?? '';
+      loadScores(session.code, currentGame, session.playerEmail);
+      subscribeRealtime(session.code, currentGame, session.playerEmail);
+    };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    flex-shrink: 0;
+    gap: 0.75rem;
+  }
+
+  .header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    flex: 1;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+
+  .player-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.12);
+    padding: 0.2rem 0.65rem;
+    border-radius: 99px;
+  }
+
+  .top-spacer { width: 80px; }
+
+  /* No access */
+  .no-access {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+  }
+
+  .no-access-icon { font-size: 3rem; }
+
+  .no-access p {
+    color: rgba(255,255,255,0.75);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .btn-join-now {
+    padding: 0.75rem 1.75rem;
+    background: white;
+    color: #1e1b4b;
+    border-radius: var(--r-md);
+    font-weight: 800;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: opacity var(--t);
+  }
+
+  .btn-join-now:hover { opacity: 0.88; }
+
+  /* Content */
+  .content {
+    flex: 1;
+    flex-direction: column;
+    padding: 0 1.25rem 5rem;
+    gap: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .section { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.5);
+    padding-left: 0.25rem;
+  }
+
+  /* Game grid */
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  .game-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--r-md);
+    text-decoration: none;
+    color: white;
+    font-size: 0.9rem;
+    transition: opacity var(--t), transform var(--t);
+  }
+
+  .game-card:hover { opacity: 0.88; transform: translateY(-2px); }
+  .game-card:active { transform: scale(0.97); }
+  .game-card span { font-size: 1.3rem; }
+  .game-card strong { font-weight: 700; }
+
+  .game-card--purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .game-card--pink   { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .game-card--indigo { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .game-card--cyan   { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 0.45rem 0.9rem;
+    border-radius: 99px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--t);
+    white-space: nowrap;
+  }
+
+  .tab:hover { border-color: rgba(255,255,255,0.45); color: white; }
+
+  .tab.active {
+    background: white;
+    border-color: white;
+    color: #1e1b4b;
+  }
+
+  /* Leaderboard */
+  .leaderboard {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  .loading-row,
+  .empty-row {
+    padding: 2rem;
+    text-align: center;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    transition: background var(--t);
+  }
+
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover { background: rgba(255,255,255,0.05); }
+
+  .lb-row--me {
+    background: rgba(102,126,234,0.25);
+    border-left: 3px solid #667eea;
+  }
+
+  .lb-rank {
+    font-size: 1.1rem;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .lb-player {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .lb-player strong {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lb-player span {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .lb-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    flex-shrink: 0;
+  }
+
+  .lb-score strong {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+
+  .lb-score span {
+    color: rgba(255,255,255,0.45);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-align: right;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 600px) {
+    .game-grid { grid-template-columns: repeat(4, 1fr); }
+    .content { max-width: 700px; margin: 0 auto; width: 100%; }
+  }
+</style>
