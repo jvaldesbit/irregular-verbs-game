@@ -264,6 +264,28 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       </div>
     </div>
   </div>
+
+  <!-- Name required modal (shown on first visit, cannot be dismissed) -->
+  <div class="name-modal-wrap" id="nameModalWrap" style="display:none" aria-modal="true" role="dialog" aria-label="Enter your name">
+    <div class="name-modal">
+      <div class="name-modal-icon">🎮</div>
+      <h2 class="name-modal-title">Welcome!</h2>
+      <p class="name-modal-sub">Enter your name to track your scores and compete on leaderboards.</p>
+      <form class="name-modal-form" id="nameModalForm" autocomplete="off">
+        <input
+          type="text"
+          id="nameModalInput"
+          class="name-modal-input"
+          placeholder="Your name…"
+          maxlength="32"
+          required
+          autocapitalize="words"
+          autocomplete="off"
+        />
+        <button type="submit" class="name-modal-btn" id="nameModalBtn">Let's play →</button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
 
@@ -928,6 +950,100 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     display: block;
   }
 
+  /* ── Name required modal ── */
+  .name-modal-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(15, 10, 40, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .name-modal {
+    background: white;
+    border-radius: var(--r-xl);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 360px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    animation: nameModalIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes nameModalIn {
+    from { opacity: 0; transform: scale(0.88) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .name-modal-icon { font-size: 3rem; line-height: 1; }
+
+  .name-modal-title {
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: #1e1b4b;
+    letter-spacing: -0.03em;
+    text-align: center;
+  }
+
+  .name-modal-sub {
+    font-size: 0.88rem;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.55;
+    font-weight: 500;
+    max-width: 280px;
+  }
+
+  .name-modal-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .name-modal-input {
+    font-family: var(--font);
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--r-md);
+    outline: none;
+    color: #1e1b4b;
+    background: #f9fafb;
+    transition: border-color var(--t);
+    text-align: center;
+    width: 100%;
+  }
+
+  .name-modal-input:focus { border-color: #667eea; background: white; }
+
+  .name-modal-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: var(--r-md);
+    font-family: var(--font);
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: opacity var(--t), transform var(--t);
+  }
+
+  .name-modal-btn:hover  { opacity: 0.9; transform: translateY(-1px); }
+  .name-modal-btn:active { transform: scale(0.98); }
+
   /* ── Shared back button ── */
   .back-btn {
     display: inline-flex;
@@ -1195,6 +1311,39 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   track();
   document.addEventListener('astro:page-load', track);
+</script>
+
+<script>
+  const NAME_KEY = 'verbGamePlayerName';
+
+  function checkName() {
+    // Skip on admin pages — no player name needed there
+    if (window.location.pathname.startsWith('/admin')) return;
+
+    const name = localStorage.getItem(NAME_KEY)?.trim();
+    if (name) return;
+
+    const wrap  = document.getElementById('nameModalWrap') as HTMLElement;
+    const form  = document.getElementById('nameModalForm') as HTMLFormElement;
+    const input = document.getElementById('nameModalInput') as HTMLInputElement;
+
+    if (!wrap) return;
+    wrap.style.display = 'flex';
+
+    // Focus input after animation
+    setTimeout(() => input.focus(), 50);
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (!val) { input.focus(); return; }
+      localStorage.setItem(NAME_KEY, val);
+      wrap.style.display = 'none';
+    };
+  }
+
+  document.addEventListener('astro:page-load', checkName);
+  checkName();
 </script>
 
 <script>
