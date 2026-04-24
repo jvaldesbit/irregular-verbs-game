@@ -5,6 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 <Layout title="Admin — Irregular Verbs">
   <!-- Login screen -->
   <div class="screen" id="loginScreen">
+    <a href="/" class="back-to-game">← Back to game</a>
     <div class="login-card">
       <div class="login-icon">🔐</div>
       <h1>Admin</h1>
@@ -32,6 +33,7 @@ import Layout from '../../layouts/Layout.astro';
   <div class="screen" id="dashScreen" style="display:none">
     <header class="dash-header">
       <div class="dash-title">
+        <a href="/" class="back-to-game back-to-game--dash">← Game</a>
         <span class="dash-icon">🎮</span>
         <span>Admin</span>
       </div>
@@ -387,6 +389,28 @@ import Layout from '../../layouts/Layout.astro';
     background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
     padding: 1.5rem;
   }
+
+  .back-to-game {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 0.85rem);
+    left: 1.25rem;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color var(--t);
+  }
+
+  .back-to-game:hover { color: white; }
+
+  .back-to-game--dash {
+    position: static;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.5);
+    margin-right: 0.5rem;
+  }
+
+  .back-to-game--dash:hover { color: rgba(255,255,255,0.85); }
 
   .login-card {
     background: rgba(255,255,255,0.05);
