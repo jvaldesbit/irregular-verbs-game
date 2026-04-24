@@ -262,7 +262,7 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem 1.25rem;
+    padding: calc(env(safe-area-inset-top) + 0.85rem) 1.25rem 0.85rem;
     gap: 0.75rem;
     flex-shrink: 0;
   }
@@ -484,7 +484,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   @media (min-width: 600px) {
-    .top-bar { padding: 1rem 1.75rem; }
+    .top-bar { padding: calc(env(safe-area-inset-top) + 1rem) 1.75rem 1rem; }
     h1 { font-size: 1.5rem; }
     .game-area { padding: 1rem 1.75rem 1.5rem; gap: 1rem; }
     :global(.vb-btn) { font-size: 1.1rem; min-height: 56px; }
