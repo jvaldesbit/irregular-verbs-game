@@ -5,9 +5,10 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Irregular Verbs Game">
   <div class="page">
     <header class="page-header">
-      <div class="logo">🎮</div>
-      <h1>Irregular Verbs</h1>
+      <div class="logo" id="topicIcon">🎮</div>
+      <h1 id="topicTitle">Irregular Verbs</h1>
       <p class="subtitle">Learn English the fun way</p>
+      <button class="topic-chip" id="topicChip" title="Change topic">📚 <span id="topicName">Verbos Irregulares</span> ▾</button>
     </header>
 
     <main class="grid">
@@ -92,6 +93,66 @@ import Layout from '../layouts/Layout.astro';
     margin-top: 0.3rem;
     font-weight: 500;
   }
+
+  .topic-chip {
+    margin-top: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.32);
+    border-radius: 99px;
+    color: white;
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t), border-color var(--t);
+    backdrop-filter: blur(8px);
+  }
+  .topic-chip:hover { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.55); }
+
+  /* Topic picker modal */
+  .topic-modal-backdrop {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(15,12,41,0.72);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .topic-modal {
+    background: white; border-radius: var(--r-xl);
+    padding: 1.75rem 1.5rem 1.5rem;
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; gap: 1rem;
+    box-shadow: var(--sh-lg);
+  }
+  .topic-modal h3 {
+    font-size: 1.15rem; font-weight: 900; color: #1e1b4b; letter-spacing: -0.02em;
+  }
+  .topic-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .topic-option {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.9rem 1rem;
+    border: 2px solid #e5e7eb; border-radius: var(--r-md);
+    cursor: pointer; background: #f9fafb;
+    transition: all var(--t); text-align: left;
+    font-family: var(--font);
+  }
+  .topic-option:hover { border-color: #667eea; background: #f0f1ff; }
+  .topic-option.active { border-color: #667eea; background: #eef2ff; }
+  .topic-icon { font-size: 1.5rem; line-height: 1; }
+  .topic-info strong { display: block; font-size: 0.95rem; font-weight: 800; color: #1e1b4b; }
+  .topic-info small  { font-size: 0.78rem; color: #6b7280; }
+  .topic-modal-close {
+    align-self: flex-end; padding: 0.4rem 0.9rem;
+    background: #f3f4f6; border: none; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: 0.85rem; font-weight: 700;
+    color: #374151; cursor: pointer; transition: background var(--t);
+  }
+  .topic-modal-close:hover { background: #e5e7eb; }
+  .topic-modal-loading { text-align: center; color: #9ca3af; font-size: 0.9rem; padding: 1rem 0; }
 
   .grid {
     display: grid;
@@ -181,6 +242,76 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { getUniverseSession } from '../utils/supabase.ts';
+  import { getActiveTopicLabel, getTopics, setActiveTopic } from '../utils/topics.ts';
+
+  let topicModalEl: HTMLElement | null = null;
+
+  function updateTopicBadge() {
+    const { name, icon } = getActiveTopicLabel();
+    const nameEl = document.getElementById('topicName');
+    const iconEl = document.getElementById('topicIcon');
+    if (nameEl) nameEl.textContent = name;
+    if (iconEl) iconEl.textContent = icon;
+  }
+
+  async function openTopicModal() {
+    if (topicModalEl) { topicModalEl.remove(); topicModalEl = null; }
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'topic-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="topic-modal">
+        <h3>¿Qué quieres aprender?</h3>
+        <div class="topic-list" id="topicList">
+          <p class="topic-modal-loading">Cargando temas…</p>
+        </div>
+        <button class="topic-modal-close" id="topicClose">Cerrar</button>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    topicModalEl = backdrop;
+
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeTopicModal(); });
+    document.getElementById('topicClose')!.onclick = closeTopicModal;
+
+    try {
+      const topics = await getTopics();
+      const list   = document.getElementById('topicList') as HTMLElement;
+      const active = localStorage.getItem('verbGame_activeTopic') ?? 'irregular-verbs';
+
+      if (!topics.length) {
+        list.innerHTML = '<p class="topic-modal-loading">No hay temas disponibles aún.</p>';
+        return;
+      }
+
+      list.innerHTML = topics.map(t => `
+        <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
+          <span class="topic-icon">${t.icon}</span>
+          <span class="topic-info">
+            <strong>${t.name_es}</strong>
+            <small>${t.name_en}</small>
+          </span>
+        </button>
+      `).join('');
+
+      list.querySelectorAll<HTMLButtonElement>('.topic-option').forEach(btn => {
+        btn.onclick = () => {
+          const chosen = topics.find(t => t.slug === btn.dataset.slug)!;
+          setActiveTopic(chosen);
+          updateTopicBadge();
+          closeTopicModal();
+        };
+      });
+    } catch {
+      document.getElementById('topicList')!.innerHTML =
+        '<p class="topic-modal-loading">Error al cargar temas.</p>';
+    }
+  }
+
+  function closeTopicModal() {
+    topicModalEl?.remove();
+    topicModalEl = null;
+  }
 
   function init() {
     const session = getUniverseSession();
@@ -194,6 +325,9 @@ import Layout from '../layouts/Layout.astro';
       badge.style.display = 'none';
       card.href = '/universe';
     }
+
+    updateTopicBadge();
+    document.getElementById('topicChip')!.onclick = openTopicModal;
   }
 
   document.addEventListener('astro:page-load', init);

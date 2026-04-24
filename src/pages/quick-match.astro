@@ -94,7 +94,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+  import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
@@ -106,9 +107,10 @@ import Layout from '../layouts/Layout.astro';
 
   type GameMode = 'endless' | 'survival' | 'rush';
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
-  let currentVerb: any = null;
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let currentQuestion: any = null;
   let gameMode: GameMode = 'survival';
 
@@ -236,43 +238,34 @@ import Layout from '../layouts/Layout.astro';
   // ── Data loading ──
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
       generateQuestion();
     } catch (e) { console.error('loadData error:', e); }
   }
 
-  function getAvailableForms() {
-    const f = settings.forms;
-    const forms = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    return forms.length >= 2 ? forms : ['present', 'past', 'participle'];
-  }
-
-  const LABELS: Record<string, string> = {
-    present: 'PRESENT', past: 'PAST', participle: 'PARTICIPLE', spanish: 'SPANISH'
-  };
-
   function generateQuestion() {
-    const forms = getAvailableForms();
-    if (forms.length < 2) { window.location.href = '/settings'; return; }
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) { window.location.href = '/settings'; return; }
 
-    currentVerb = verbs[Math.floor(Math.random() * verbs.length)];
-    const showForm = forms[Math.floor(Math.random() * forms.length)];
-    const askForms = forms.filter(f => f !== showForm);
-    const askForm = askForms[Math.floor(Math.random() * askForms.length)];
+    const item = items[Math.floor(Math.random() * items.length)];
+    const [showKey, askKey] = availPairs[Math.floor(Math.random() * availPairs.length)];
+    const LABELS = buildLabels(fields);
 
-    currentQuestion = { show: showForm, ask: askForm, correct: currentVerb[askForm] };
+    currentQuestion = { show: showKey, ask: askKey, item, correct: item[askKey] };
 
     (document.getElementById('questionLabel') as HTMLElement).textContent =
-      `Find the ${LABELS[askForm]} form of:`;
-    (document.getElementById('questionWord') as HTMLElement).textContent = currentVerb[showForm];
+      `Find the ${LABELS[askKey]} form of:`;
+    (document.getElementById('questionWord') as HTMLElement).textContent = item[showKey];
 
     const hintEl = document.getElementById('hint') as HTMLElement;
-    hintEl.textContent = (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish)
-      ? `(${currentVerb.spanish})` : '';
+    const hintField = fields.find(f =>
+      settings.forms[f.key] !== false && f.key !== showKey && f.key !== askKey
+    );
+    hintEl.textContent = hintField && item[hintField.key] ? `(${item[hintField.key]})` : '';
 
     generateOptions();
     const msg = document.getElementById('resultMessage') as HTMLElement;
@@ -283,10 +276,14 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function generateOptions() {
-    const options = [currentQuestion.correct];
-    while (options.length < 4) {
-      const rand = verbs[Math.floor(Math.random() * verbs.length)][currentQuestion.ask];
-      if (!options.includes(rand)) options.push(rand);
+    const askKey  = currentQuestion.ask;
+    const correct = currentQuestion.correct;
+    const pool    = items.map(i => i[askKey]).filter(v => v && v !== correct);
+    const options = [correct];
+    while (options.length < 4 && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const pick = pool.splice(idx, 1)[0];
+      if (!options.includes(pick)) options.push(pick);
     }
     options.sort(() => Math.random() - 0.5);
 
@@ -405,7 +402,7 @@ import Layout from '../layouts/Layout.astro';
     applyModeUI();
     if (gameMode !== 'endless') renderLives();
 
-    if (verbs.length) { generateQuestion(); } else { loadData(); }
+    if (items.length) { generateQuestion(); } else { loadData(); }
   }
 
   function showModeSelect() {
@@ -418,7 +415,7 @@ import Layout from '../layouts/Layout.astro';
   function init() {
     stopRushTimer();
     showModeSelect();
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.querySelectorAll<HTMLButtonElement>('.mode-card').forEach(btn => {
       btn.onclick = () => startGame(btn.dataset.mode as GameMode);

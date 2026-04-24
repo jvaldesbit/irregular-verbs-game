@@ -24,51 +24,22 @@ import Layout from '../layouts/Layout.astro';
 
           <div class="section-divider"></div>
 
-          <h2>Verb Forms to Learn</h2>
-          <p class="desc">Select at least 2 forms for games to work.</p>
+          <h2 id="fieldsTitle">Campos a Practicar</h2>
+          <p class="desc" id="fieldsDesc">Selecciona al menos 2 campos para que los juegos funcionen.</p>
 
           <form id="settingsForm" class="form">
-            <label class="check-row" id="rowPresent">
-              <input type="checkbox" id="chkPresent">
-              <span class="check-box"></span>
-              <span class="check-body">
-                <strong>Present (Infinitive)</strong>
-                <small>eat, go, do</small>
-              </span>
-            </label>
-            <label class="check-row" id="rowPast">
-              <input type="checkbox" id="chkPast">
-              <span class="check-box"></span>
-              <span class="check-body">
-                <strong>Past (Simple Past)</strong>
-                <small>ate, went, did</small>
-              </span>
-            </label>
-            <label class="check-row" id="rowParticiple">
-              <input type="checkbox" id="chkParticiple">
-              <span class="check-box"></span>
-              <span class="check-body">
-                <strong>Participle (Past Participle)</strong>
-                <small>eaten, gone, done</small>
-              </span>
-            </label>
-            <label class="check-row" id="rowSpanish">
-              <input type="checkbox" id="chkSpanish">
-              <span class="check-box"></span>
-              <span class="check-body">
-                <strong>Spanish (Español)</strong>
-                <small>comer, ir, hacer</small>
-              </span>
-            </label>
+            <div id="fieldsContainer">
+              <p class="fields-loading">Cargando campos…</p>
+            </div>
 
             <div class="btn-row">
-              <button type="submit" class="save-btn">Save Settings</button>
+              <button type="submit" class="save-btn">Guardar</button>
               <button type="button" class="reset-btn" id="resetBtn">Reset</button>
             </div>
           </form>
 
-          <div class="msg success" id="msgOk" style="display:none">✓ Settings saved!</div>
-          <div class="msg error" id="msgErr" style="display:none">⚠️ Select at least 2 forms.</div>
+          <div class="msg success" id="msgOk" style="display:none">✓ Configuración guardada!</div>
+          <div class="msg error" id="msgErr" style="display:none">⚠️ Selecciona al menos 2 campos.</div>
 
           <div class="section-divider"></div>
 
@@ -109,9 +80,13 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  import { loadData, saveSettings, loadSettings } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
 
-  // Player name
+  let currentFields: TopicField[] = [];
+  let settings: GameSettings = { forms: {} };
+
+  // ── Player name ──────────────────────────────────────────────────────────────
   const nameInput = document.getElementById('playerName') as HTMLInputElement;
   nameInput.value = localStorage.getItem('verbGamePlayerName') || '';
   document.getElementById('saveNameBtn')!.addEventListener('click', () => {
@@ -123,53 +98,51 @@ import Layout from '../layouts/Layout.astro';
     setTimeout(() => ok.style.display = 'none', 2500);
   });
 
-  function syncCheckboxes() {
-    (document.getElementById('chkPresent') as HTMLInputElement).checked = settings.forms.present;
-    (document.getElementById('chkPast') as HTMLInputElement).checked = settings.forms.past;
-    (document.getElementById('chkParticiple') as HTMLInputElement).checked = settings.forms.participle;
-    (document.getElementById('chkSpanish') as HTMLInputElement).checked = settings.forms.spanish;
+  // ── Dynamic fields ───────────────────────────────────────────────────────────
+
+  function renderFieldCheckboxes(fields: TopicField[]) {
+    const container = document.getElementById('fieldsContainer') as HTMLElement;
+    container.innerHTML = fields.map(f => `
+      <label class="check-row" id="row_${f.key}">
+        <input type="checkbox" id="chk_${f.key}" ${settings.forms[f.key] !== false ? 'checked' : ''}>
+        <span class="check-box"></span>
+        <span class="check-body">
+          <strong>${f.label_es}</strong>
+          <small>${f.label_en}${f.enabled ? '' : ' — desactivado por defecto'}</small>
+        </span>
+      </label>
+    `).join('');
+
+    fields.forEach(f => {
+      document.getElementById(`chk_${f.key}`)!.addEventListener('change', tryAutoSave);
+    });
   }
 
-  function showMsg(type: 'ok'|'err') {
-    const ok = document.getElementById('msgOk') as HTMLElement;
+  function getCurrentForms(): Record<string, boolean> {
+    const forms: Record<string, boolean> = {};
+    currentFields.forEach(f => {
+      const chk = document.getElementById(`chk_${f.key}`) as HTMLInputElement | null;
+      forms[f.key] = chk ? chk.checked : false;
+    });
+    return forms;
+  }
+
+  function showMsg(type: 'ok' | 'err') {
+    const ok  = document.getElementById('msgOk') as HTMLElement;
     const err = document.getElementById('msgErr') as HTMLElement;
-    ok.style.display = type === 'ok' ? 'block' : 'none';
+    ok.style.display  = type === 'ok'  ? 'block' : 'none';
     err.style.display = type === 'err' ? 'block' : 'none';
     setTimeout(() => { ok.style.display = 'none'; err.style.display = 'none'; }, 3000);
-  }
-
-  function getCurrentForms() {
-    return {
-      present:    (document.getElementById('chkPresent') as HTMLInputElement).checked,
-      past:       (document.getElementById('chkPast') as HTMLInputElement).checked,
-      participle: (document.getElementById('chkParticiple') as HTMLInputElement).checked,
-      spanish:    (document.getElementById('chkSpanish') as HTMLInputElement).checked,
-    };
-  }
-
-  function saveSettings(s: any) {
-    localStorage.setItem('verbGameSettings', JSON.stringify(s));
-    settings = s;
   }
 
   function tryAutoSave() {
     const forms = getCurrentForms();
     const count = Object.values(forms).filter(Boolean).length;
-    const msgErr = document.getElementById('msgErr') as HTMLElement;
-    if (count < 2) {
-      msgErr.style.display = 'block';
-      setTimeout(() => msgErr.style.display = 'none', 2500);
-      return;
-    }
-    msgErr.style.display = 'none';
-    saveSettings({ forms });
+    if (count < 2) { showMsg('err'); return; }
+    settings = { forms };
+    saveSettings(settings);
     showMsg('ok');
   }
-
-  // Auto-save on every checkbox change
-  ['chkPresent','chkPast','chkParticiple','chkSpanish'].forEach(id => {
-    document.getElementById(id)!.addEventListener('change', tryAutoSave);
-  });
 
   document.getElementById('settingsForm')!.addEventListener('submit', e => {
     e.preventDefault();
@@ -177,25 +150,40 @@ import Layout from '../layouts/Layout.astro';
   });
 
   document.getElementById('resetBtn')!.addEventListener('click', () => {
-    const s = { forms: { present: true, past: true, participle: true, spanish: true } };
-    saveSettings(s);
-    syncCheckboxes();
+    const forms: Record<string, boolean> = {};
+    currentFields.forEach(f => { forms[f.key] = f.enabled; });
+    settings = { forms };
+    saveSettings(settings);
+    currentFields.forEach(f => {
+      const chk = document.getElementById(`chk_${f.key}`) as HTMLInputElement | null;
+      if (chk) chk.checked = f.enabled;
+    });
     showMsg('ok');
   });
 
-  // Sound toggle
+  // ── Sound toggle ─────────────────────────────────────────────────────────────
   const chkSound = document.getElementById('chkSound') as HTMLInputElement;
   chkSound.checked = localStorage.getItem('verbGameSounds') !== 'false';
   chkSound.addEventListener('change', () => {
     localStorage.setItem('verbGameSounds', chkSound.checked ? 'true' : 'false');
   });
 
-  // Load from localStorage
-  try {
-    const saved = localStorage.getItem('verbGameSettings');
-    if (saved) { settings = JSON.parse(saved); }
-  } catch { /* use defaults */ }
-  syncCheckboxes();
+  // ── Bootstrap ────────────────────────────────────────────────────────────────
+  async function init() {
+    try {
+      const { fields } = await loadData();
+      currentFields = fields;
+      settings = loadSettings(fields);
+      renderFieldCheckboxes(fields);
+    } catch (e) {
+      console.error('Settings load error:', e);
+      document.getElementById('fieldsContainer')!.innerHTML =
+        '<p style="color:rgba(255,255,255,0.6);font-size:0.88rem">Error al cargar campos.</p>';
+    }
+  }
+
+  document.addEventListener('astro:page-load', init);
+  init();
 </script>
 
 <style>
@@ -259,6 +247,13 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 1.25rem;
     font-weight: 500;
     line-height: 1.5;
+  }
+
+  .fields-loading {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.88rem;
+    font-style: italic;
+    padding: 0.5rem 0;
   }
 
   /* Checkboxes */

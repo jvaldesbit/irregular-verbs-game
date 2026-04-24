@@ -65,6 +65,70 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </section>
 
+      <!-- Topics panel -->
+      <section class="panel" id="topicsPanel">
+        <div class="panel-header">
+          <h2>📚 Temas de Aprendizaje</h2>
+          <button class="btn-add" id="btnShowTopicCreate">+ Nuevo tema</button>
+        </div>
+
+        <!-- New topic form -->
+        <div class="create-form" id="topicCreateForm" style="display:none">
+          <div class="topic-form-grid">
+            <input type="text"   id="tSlug"   placeholder="slug (ej: irregular-verbs)" maxlength="60" class="name-inp" />
+            <input type="text"   id="tNameEn" placeholder="Nombre en inglés"           maxlength="80" class="name-inp" />
+            <input type="text"   id="tNameEs" placeholder="Nombre en español"          maxlength="80" class="name-inp" />
+            <input type="text"   id="tIcon"   placeholder="Emoji/icono"  maxlength="8"  class="code-inp" style="width:80px" />
+          </div>
+          <div class="topic-upload-row">
+            <label class="upload-label" for="tJsonFile">📄 Sube el JSON del tema:</label>
+            <input type="file" id="tJsonFile" accept=".json" class="file-input" />
+          </div>
+          <div class="create-actions">
+            <button class="btn-save" id="btnCreateTopic">Subir a R2 y Crear</button>
+            <button class="btn-cancel" id="btnCancelTopicCreate">Cancelar</button>
+          </div>
+          <div class="create-error" id="topicCreateError" style="display:none"></div>
+          <div class="create-progress" id="topicCreateProgress" style="display:none">Subiendo a R2…</div>
+        </div>
+
+        <div class="universe-list" id="topicList">
+          <div class="list-loading">Cargando…</div>
+        </div>
+      </section>
+
+      <!-- R2 config panel -->
+      <section class="panel" id="r2Panel">
+        <div class="panel-header">
+          <h2>☁️ Configuración R2</h2>
+          <button class="btn-add" id="btnSaveR2">Guardar</button>
+        </div>
+        <div class="r2-form">
+          <div class="r2-field">
+            <label>Account ID</label>
+            <input type="text"     id="r2AccountId"       placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="r2-inp" />
+          </div>
+          <div class="r2-field">
+            <label>Access Key ID</label>
+            <input type="text"     id="r2AccessKeyId"     placeholder="Access key ID" class="r2-inp" />
+          </div>
+          <div class="r2-field">
+            <label>Secret Access Key</label>
+            <input type="password" id="r2SecretAccessKey" placeholder="Secret" class="r2-inp" />
+          </div>
+          <div class="r2-field">
+            <label>Bucket Name</label>
+            <input type="text"     id="r2BucketName"      placeholder="verb-game-topics" class="r2-inp" />
+          </div>
+          <div class="r2-field">
+            <label>Public Base URL</label>
+            <input type="text"     id="r2PublicBaseUrl"   placeholder="https://pub-xxx.r2.dev" class="r2-inp" />
+          </div>
+          <div class="r2-msg success" id="r2SaveOk"  style="display:none">✓ Guardado!</div>
+          <div class="r2-msg error"   id="r2SaveErr" style="display:none"></div>
+        </div>
+      </section>
+
       <!-- Visitors panel -->
       <section class="panel" id="visitorsPanel">
         <div class="panel-header">
@@ -127,6 +191,12 @@ import Layout from '../../layouts/Layout.astro';
     getAllUniverses, createUniverse, deleteUniverse, getAllScores,
     getAppSessions,
   } from '../../utils/supabase.ts';
+  import {
+    getTopics, createTopicMeta, deleteTopicMeta,
+  } from '../../utils/topics.ts';
+  import {
+    uploadTopicJson, deleteTopicJson, saveR2Config, loadR2Config,
+  } from '../../utils/r2.ts';
 
   const GAME_LABELS: Record<string, string> = {
     'quick-match': 'Quick', 'survival': 'Survival', 'endless': 'Endless',
@@ -149,7 +219,9 @@ import Layout from '../../layouts/Layout.astro';
     (document.getElementById('loginScreen') as HTMLElement).style.display = 'none';
     (document.getElementById('dashScreen') as HTMLElement).style.display = 'flex';
     loadUniverses();
+    loadTopics();
     loadVisitors();
+    loadR2Form();
   }
 
   // ── Login ──────────────────────────────────────────────────────────────────
@@ -157,6 +229,7 @@ import Layout from '../../layouts/Layout.astro';
   async function init() {
     const session = await getAdminSession();
     session ? showDash() : showLogin();
+    bindR2Events();
 
     const form      = document.getElementById('loginForm') as HTMLFormElement;
     const errorEl   = document.getElementById('loginError') as HTMLElement;
@@ -193,6 +266,137 @@ import Layout from '../../layouts/Layout.astro';
     };
 
     bindDashEvents();
+    bindTopicCreateEvents();
+  }
+
+  // ── Topics ────────────────────────────────────────────────────────────────
+
+  async function loadTopics() {
+    const list = document.getElementById('topicList') as HTMLElement;
+    list.innerHTML = '<div class="list-loading">Cargando…</div>';
+    const topics = await getTopics();
+    if (!topics.length) {
+      list.innerHTML = '<div class="list-empty">Sin temas. Crea uno!</div>';
+      return;
+    }
+    list.innerHTML = topics.map(t => `
+      <div class="universe-row" data-id="${t.id}">
+        <div class="u-info">
+          <span style="font-size:1.3rem">${t.icon}</span>
+          <strong class="u-code">${t.slug}</strong>
+          <span class="u-name">${t.name_es}</span>
+        </div>
+        <div class="u-actions">
+          <a class="btn-scores" href="${t.payload_url}" target="_blank" rel="noopener">JSON ↗</a>
+          <button class="btn-delete" data-id="${t.id}" data-slug="${t.slug}">🗑</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll<HTMLButtonElement>('.btn-delete').forEach(btn => {
+      btn.onclick = async () => {
+        const { id, slug } = btn.dataset as { id: string; slug: string };
+        if (!confirm(`Eliminar tema "${slug}"?`)) return;
+        btn.disabled = true; btn.textContent = '…';
+        await deleteTopicJson(slug).catch(() => {});
+        await deleteTopicMeta(id);
+        loadTopics();
+      };
+    });
+  }
+
+  function bindTopicCreateEvents() {
+    const btn          = document.getElementById('btnShowTopicCreate') as HTMLButtonElement;
+    const form         = document.getElementById('topicCreateForm') as HTMLElement;
+    const btnCancel    = document.getElementById('btnCancelTopicCreate') as HTMLButtonElement;
+    const btnCreate    = document.getElementById('btnCreateTopic') as HTMLButtonElement;
+    const errEl        = document.getElementById('topicCreateError') as HTMLElement;
+    const progressEl   = document.getElementById('topicCreateProgress') as HTMLElement;
+
+    btn.onclick = () => { form.style.display = form.style.display === 'none' ? 'flex' : 'none'; };
+    btnCancel.onclick = () => { form.style.display = 'none'; };
+
+    btnCreate.onclick = async () => {
+      const slug    = (document.getElementById('tSlug')   as HTMLInputElement).value.trim().toLowerCase();
+      const nameEn  = (document.getElementById('tNameEn') as HTMLInputElement).value.trim();
+      const nameEs  = (document.getElementById('tNameEs') as HTMLInputElement).value.trim();
+      const icon    = (document.getElementById('tIcon')   as HTMLInputElement).value.trim() || '📚';
+      const fileInp = document.getElementById('tJsonFile') as HTMLInputElement;
+      const file    = fileInp.files?.[0];
+
+      errEl.style.display = 'none';
+      if (!slug || !nameEn || !nameEs || !file) {
+        errEl.textContent = 'Completa todos los campos y selecciona un archivo JSON.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      let payload: any;
+      try {
+        payload = JSON.parse(await file.text());
+        if (!payload.fields || !payload.items) throw new Error('El JSON debe tener "fields" e "items"');
+      } catch (e: any) {
+        errEl.textContent = `JSON inválido: ${e.message}`;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btnCreate.disabled = true;
+      progressEl.style.display = 'block';
+
+      try {
+        const payloadUrl = await uploadTopicJson(slug, payload);
+        const result = await createTopicMeta(slug, nameEn, nameEs, icon, payloadUrl);
+        if (!result.ok) throw new Error(result.error);
+
+        form.style.display = 'none';
+        progressEl.style.display = 'none';
+        btnCreate.disabled = false;
+        loadTopics();
+      } catch (e: any) {
+        errEl.textContent = e.message ?? 'Error al crear tema.';
+        errEl.style.display = 'block';
+        progressEl.style.display = 'none';
+        btnCreate.disabled = false;
+      }
+    };
+  }
+
+  // ── R2 config ──────────────────────────────────────────────────────────────
+
+  async function loadR2Form() {
+    try {
+      const cfg = await loadR2Config();
+      if (cfg.accountId)       (document.getElementById('r2AccountId')       as HTMLInputElement).value = cfg.accountId;
+      if (cfg.accessKeyId)     (document.getElementById('r2AccessKeyId')     as HTMLInputElement).value = cfg.accessKeyId;
+      if (cfg.secretAccessKey) (document.getElementById('r2SecretAccessKey') as HTMLInputElement).value = cfg.secretAccessKey;
+      if (cfg.bucketName)      (document.getElementById('r2BucketName')      as HTMLInputElement).value = cfg.bucketName;
+      if (cfg.publicBaseUrl)   (document.getElementById('r2PublicBaseUrl')   as HTMLInputElement).value = cfg.publicBaseUrl;
+    } catch { /* no config yet */ }
+  }
+
+  function bindR2Events() {
+    document.getElementById('btnSaveR2')!.onclick = async () => {
+      const config = {
+        accountId:       (document.getElementById('r2AccountId')       as HTMLInputElement).value.trim(),
+        accessKeyId:     (document.getElementById('r2AccessKeyId')     as HTMLInputElement).value.trim(),
+        secretAccessKey: (document.getElementById('r2SecretAccessKey') as HTMLInputElement).value.trim(),
+        bucketName:      (document.getElementById('r2BucketName')      as HTMLInputElement).value.trim(),
+        publicBaseUrl:   (document.getElementById('r2PublicBaseUrl')   as HTMLInputElement).value.trim(),
+      };
+      const okEl  = document.getElementById('r2SaveOk')  as HTMLElement;
+      const errEl = document.getElementById('r2SaveErr') as HTMLElement;
+      try {
+        await saveR2Config(config);
+        okEl.style.display = 'block';
+        errEl.style.display = 'none';
+        setTimeout(() => { okEl.style.display = 'none'; }, 2500);
+      } catch (e: any) {
+        errEl.textContent = e.message ?? 'Error al guardar.';
+        errEl.style.display = 'block';
+        okEl.style.display = 'none';
+      }
+    };
   }
 
   // ── Universes ──────────────────────────────────────────────────────────────
@@ -812,6 +1016,58 @@ import Layout from '../../layouts/Layout.astro';
     padding: 2rem;
     color: rgba(255,255,255,0.3);
   }
+
+  /* ── Topics form ── */
+  .topic-form-grid {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; width: 100%;
+  }
+  .topic-upload-row {
+    display: flex; align-items: center; gap: 0.75rem; width: 100%;
+    flex-wrap: wrap;
+  }
+  .upload-label {
+    color: rgba(255,255,255,0.65); font-size: 0.85rem; font-weight: 600;
+  }
+  .file-input {
+    font-size: 0.82rem; color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-sm);
+    padding: 0.4rem 0.6rem;
+  }
+  .create-progress {
+    font-size: 0.82rem; font-weight: 600;
+    color: #a5b4fc; padding: 0.3rem 0;
+  }
+
+  /* ── R2 config form ── */
+  .r2-form {
+    padding: 1rem 1.25rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.65rem;
+  }
+  .r2-field {
+    display: flex; flex-direction: column; gap: 0.25rem;
+  }
+  .r2-field label {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: rgba(255,255,255,0.4);
+  }
+  .r2-inp {
+    font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+    padding: 0.55rem 0.85rem;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.06);
+    color: white; outline: none;
+    transition: border-color var(--t);
+  }
+  .r2-inp:focus { border-color: #667eea; }
+  .r2-msg {
+    font-size: 0.82rem; font-weight: 700;
+    padding: 0.45rem 0.75rem; border-radius: var(--r-sm);
+  }
+  .r2-msg.success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .r2-msg.error   { background: rgba(239,68,68,0.12);  color: #f87171; }
 
   .visitors-badge {
     display: inline-block;

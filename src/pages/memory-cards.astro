@@ -55,42 +55,38 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+  import { loadData as fetchData, getAvailablePairs } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let gameCards: any[] = [];
   let flipped: {card: any, el: HTMLElement}[] = [];
   let matchedPairs = 0, moves = 0, canFlip = true, totalPairs = 6;
 
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
     } catch (e) { console.error('loadData error:', e); }
   }
 
-  function getAvailableForms() {
-    const f = settings.forms;
-    const forms: string[] = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    return forms.length >= 2 ? forms : ['present', 'past'];
-  }
+  function startGame(numPairs: number) {
+    totalPairs = numPairs;
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) { window.location.href = '/settings'; return; }
 
-  function startGame(pairs: number) {
-    totalPairs = pairs;
-    const forms = getAvailableForms();
-    if (forms.length < 2) { window.location.href = '/settings'; return; }
+    const [f1, f2] = availPairs[Math.floor(Math.random() * availPairs.length)];
 
-    const shuffled = [...forms].sort(() => Math.random() - 0.5);
-    const [f1, f2] = shuffled;
-
-    const selected = [...verbs].sort(() => Math.random() - 0.5).slice(0, pairs);
+    const selected = [...items].sort(() => Math.random() - 0.5).slice(0, numPairs);
     gameCards = [];
     selected.forEach((verb, i) => {
       gameCards.push({ id: `${i}-a`, pairId: i, text: verb[f1] });
@@ -187,7 +183,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function init() {
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.querySelectorAll<HTMLButtonElement>('.diff-btn').forEach(btn => {
       btn.onclick = () => startGame(parseInt(btn.dataset.pairs!));

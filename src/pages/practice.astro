@@ -17,22 +17,7 @@ import Layout from '../layouts/Layout.astro';
       <!-- Browse mode -->
       <div class="browse-view" id="browseView">
         <div class="forms-grid" id="formsGrid">
-          <div class="form-tile" id="tilePresent">
-            <span class="form-label">Present</span>
-            <span class="form-value" id="vPresent">—</span>
-          </div>
-          <div class="form-tile" id="tilePast">
-            <span class="form-label">Past</span>
-            <span class="form-value" id="vPast">—</span>
-          </div>
-          <div class="form-tile" id="tileParticiple">
-            <span class="form-label">Participle</span>
-            <span class="form-value" id="vParticiple">—</span>
-          </div>
-          <div class="form-tile" id="tileSpanish">
-            <span class="form-label">Español</span>
-            <span class="form-value" id="vSpanish">—</span>
-          </div>
+          <!-- tiles rendered dynamically by JavaScript based on active topic fields -->
         </div>
 
         <div class="nav-bar">
@@ -89,58 +74,66 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+  import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let idx = 0, isQuiz = false, rightCount = 0, wrongCount = 0;
 
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
+      renderBrowseTiles();
       showVerb();
     } catch (e) { console.error('loadData error:', e); }
   }
 
+  function renderBrowseTiles() {
+    const grid = document.getElementById('formsGrid') as HTMLElement;
+    grid.innerHTML = fields.map(f => `
+      <div class="form-tile" id="tile_${f.key}">
+        <span class="form-label">${f.label_es}</span>
+        <span class="form-value" id="v_${f.key}">—</span>
+      </div>
+    `).join('');
+  }
+
   function showVerb() {
-    if (!verbs.length) return;
-    const v = verbs[idx];
-    const f = settings.forms;
+    if (!items.length) return;
+    const v = items[idx];
 
-    (document.getElementById('vPresent') as HTMLElement).textContent = v.present;
-    (document.getElementById('vPast') as HTMLElement).textContent = v.past;
-    (document.getElementById('vParticiple') as HTMLElement).textContent = v.participle;
-    (document.getElementById('vSpanish') as HTMLElement).textContent = v.spanish;
+    fields.forEach(f => {
+      const tile = document.getElementById(`tile_${f.key}`) as HTMLElement | null;
+      const val  = document.getElementById(`v_${f.key}`) as HTMLElement | null;
+      if (!tile) return;
+      tile.style.display = settings.forms[f.key] !== false ? '' : 'none';
+      if (val) val.textContent = v[f.key] ?? '—';
+    });
 
-    (document.getElementById('tilePresent') as HTMLElement).style.display = f.present ? '' : 'none';
-    (document.getElementById('tilePast') as HTMLElement).style.display = f.past ? '' : 'none';
-    (document.getElementById('tileParticiple') as HTMLElement).style.display = f.participle ? '' : 'none';
-    (document.getElementById('tileSpanish') as HTMLElement).style.display = f.spanish ? '' : 'none';
-
-    (document.getElementById('counter') as HTMLElement).textContent = `${idx + 1} / ${verbs.length}`;
+    (document.getElementById('counter') as HTMLElement).textContent = `${idx + 1} / ${items.length}`;
 
     if (isQuiz) genQuizQuestion(v);
   }
 
-  function genQuizQuestion(v: any) {
-    const f = settings.forms;
-    const forms: string[] = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    if (forms.length < 2) forms.push('present', 'past', 'participle');
+  function genQuizQuestion(v: Record<string, string>) {
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) return;
 
-    const show = forms[Math.floor(Math.random() * forms.length)];
-    const askForms = forms.filter(x => x !== show);
-    const ask = askForms[Math.floor(Math.random() * askForms.length)];
-    const LABELS: Record<string,string> = { present:'PRESENT', past:'PAST', participle:'PARTICIPLE', spanish:'SPANISH' };
+    const [show, ask] = availPairs[Math.floor(Math.random() * availPairs.length)];
+    const LABELS = buildLabels(fields);
 
     (document.getElementById('quizLabel') as HTMLElement).textContent = `What is the ${LABELS[ask]} form?`;
-    (document.getElementById('quizWord') as HTMLElement).textContent = v[show];
-    (document.getElementById('correctAnswer') as HTMLElement).textContent = v[ask];
+    (document.getElementById('quizWord') as HTMLElement).textContent = v[show] ?? '—';
+    (document.getElementById('correctAnswer') as HTMLElement).textContent = v[ask] ?? '—';
 
     (document.getElementById('answerArea') as HTMLElement).style.display = 'none';
     (document.getElementById('revealArea') as HTMLElement).style.display = 'flex';
@@ -161,8 +154,8 @@ import Layout from '../layouts/Layout.astro';
     showVerb();
   }
 
-  function nextVerb() { idx = (idx + 1) % verbs.length; showVerb(); }
-  function prevVerb() { idx = (idx - 1 + verbs.length) % verbs.length; showVerb(); }
+  function nextVerb() { idx = (idx + 1) % items.length; showVerb(); }
+  function prevVerb() { idx = (idx - 1 + items.length) % items.length; showVerb(); }
 
   function updateQuizStats() {
     const total = rightCount + wrongCount;
@@ -186,7 +179,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function init() {
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.getElementById('nextBtn')!.onclick = nextVerb;
     document.getElementById('prevBtn')!.onclick = prevVerb;
