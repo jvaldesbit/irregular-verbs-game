@@ -34,6 +34,19 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 <body class={bodyClass}>
   <slot />
 
+  <!-- Pull-to-refresh indicator -->
+  <div id="ptrWrap" aria-hidden="true">
+    <div id="ptrBubble">
+      <svg id="ptrArrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <polyline points="19 12 12 19 5 12"/>
+      </svg>
+      <svg id="ptrSpinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+    </div>
+  </div>
+
   <!-- FAB Speed Dial (bottom-right) -->
   <div class="fab-stack" id="fabStack">
     <!-- Speed dial items (shown when open) -->
@@ -291,6 +304,52 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   @media (min-width: 1024px) {
     html { font-size: 18px; }
+  }
+
+  /* ── Pull-to-refresh ── */
+  #ptrWrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9996;
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  #ptrBubble {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  #ptrBubble.ptr-ready {
+    background: white;
+    border-color: white;
+    color: #1e1b4b;
+    transform: scale(1.1);
+  }
+
+  @keyframes ptrSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  #ptrSpinner {
+    animation: ptrSpin 0.75s linear infinite;
   }
 
   /* ── Fixed footer ── */
@@ -1117,4 +1176,87 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   track();
   document.addEventListener('astro:page-load', track);
+</script>
+
+<script>
+  // Pull-to-refresh — listeners added once (module runs once in Astro)
+  const PTR_THRESHOLD = 80;  // real px the finger must travel
+  const PTR_HIDDEN_Y  = -56; // px above viewport when resting
+
+  let ptStartY = 0;
+  let ptActive = false;
+  let ptReady  = false;
+
+  function ptrReset() {
+    const wrap    = document.getElementById('ptrWrap')    as HTMLElement | null;
+    const arrow   = document.getElementById('ptrArrow')   as HTMLElement | null;
+    const spinner = document.getElementById('ptrSpinner') as HTMLElement | null;
+    const bubble  = document.getElementById('ptrBubble')  as HTMLElement | null;
+    if (!wrap) return;
+    wrap.style.transition = '';
+    wrap.style.transform  = `translateY(${PTR_HIDDEN_Y}px)`;
+    if (arrow)   { arrow.style.display = ''; arrow.style.transform = 'rotate(0deg)'; }
+    if (spinner) { spinner.style.display = 'none'; }
+    if (bubble)  { bubble.classList.remove('ptr-ready'); }
+    ptActive = false;
+    ptReady  = false;
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    if (window.scrollY > 5) return;
+    ptStartY = e.touches[0].clientY;
+    ptActive = true;
+    ptReady  = false;
+    const wrap = document.getElementById('ptrWrap') as HTMLElement | null;
+    if (wrap) wrap.style.transition = '';
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!ptActive) return;
+    const deltaY = e.touches[0].clientY - ptStartY;
+    if (deltaY <= 0) { ptActive = false; return; }
+
+    const wrap   = document.getElementById('ptrWrap')   as HTMLElement | null;
+    const arrow  = document.getElementById('ptrArrow')  as HTMLElement | null;
+    const bubble = document.getElementById('ptrBubble') as HTMLElement | null;
+    if (!wrap) return;
+
+    // indicator moves at 85% of finger speed, capped at 16px below top
+    const indicatorY = Math.min(PTR_HIDDEN_Y + deltaY * 0.85, 16);
+    wrap.style.transform = `translateY(${indicatorY}px)`;
+
+    // arrow rotates 0→180° as progress goes 0→1
+    const progress = Math.min(deltaY / PTR_THRESHOLD, 1);
+    if (arrow) arrow.style.transform = `rotate(${progress * 180}deg)`;
+
+    ptReady = deltaY >= PTR_THRESHOLD;
+    if (bubble) bubble.classList.toggle('ptr-ready', ptReady);
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!ptActive) return;
+    ptActive = false;
+
+    const wrap    = document.getElementById('ptrWrap')    as HTMLElement | null;
+    const arrow   = document.getElementById('ptrArrow')   as HTMLElement | null;
+    const spinner = document.getElementById('ptrSpinner') as HTMLElement | null;
+    if (!wrap) return;
+
+    if (ptReady) {
+      // snap to visible, show spinner, then reload
+      wrap.style.transition = 'transform 0.2s ease';
+      wrap.style.transform  = 'translateY(16px)';
+      if (arrow)   arrow.style.display   = 'none';
+      if (spinner) spinner.style.display = '';
+      setTimeout(() => location.reload(), 650);
+    } else {
+      // snap back
+      wrap.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      wrap.style.transform  = `translateY(${PTR_HIDDEN_Y}px)`;
+    }
+  }, { passive: true });
+
+  // Reset visual state on every navigation
+  document.addEventListener('astro:page-load', ptrReset);
+  ptrReset();
 </script>
