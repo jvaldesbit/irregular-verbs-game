@@ -267,16 +267,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     box-sizing: border-box;
   }
 
-  html {
-    background: #1e1b4b;
-    overscroll-behavior: none;
-  }
-
-  body {
-    overscroll-behavior: none;
-  }
-
   :root {
+    --sat: env(safe-area-inset-top, 0px);
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --purple:      #667eea;
     --purple-dark: #764ba2;
@@ -296,6 +288,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   html {
     font-size: 16px;
+    background: #1e1b4b;
+    overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -305,6 +299,12 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  /* Push all page content below the notch / Dynamic Island */
+  .page {
+    padding-top: env(safe-area-inset-top);
   }
 
   @media (min-width: 768px) {
@@ -324,20 +324,21 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     z-index: 9996;
     display: flex;
     justify-content: center;
-    padding-top: 10px;
+    /* bubble sits 12px below the notch/Dynamic Island */
+    padding-top: calc(env(safe-area-inset-top) + 12px);
     pointer-events: none;
     will-change: transform;
   }
 
   #ptrBubble {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(255,255,255,0.3);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -349,7 +350,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     background: white;
     border-color: white;
     color: #1e1b4b;
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35);
   }
 
   @keyframes ptrSpin {
@@ -358,7 +360,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   }
 
   #ptrSpinner {
-    animation: ptrSpin 0.75s linear infinite;
+    animation: ptrSpin 0.7s linear infinite;
   }
 
   /* ── Fixed footer ── */
@@ -1188,22 +1190,35 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 </script>
 
 <script>
-  // Pull-to-refresh — listeners added once (module runs once in Astro)
-  const PTR_THRESHOLD = 80;  // real px the finger must travel
-  const PTR_HIDDEN_Y  = -56; // px above viewport when resting
+  // Pull-to-refresh — listeners registered once (Astro module runs once)
+  const PTR_THRESHOLD = 80; // finger travel in px to trigger reload
 
   let ptStartY = 0;
   let ptActive = false;
   let ptReady  = false;
+  let ptrHiddenY = -120; // recalculated on each reset based on safe-area
+
+  // Read the safe-area-inset-top CSS variable set on :root
+  function getSafeAreaTop(): number {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--sat').trim();
+    return parseFloat(raw) || 0;
+  }
+
+  // Hidden Y = enough to fully conceal the bubble above the viewport
+  // (safe-area + ptrWrap padding 12px + bubble 46px + buffer 16px)
+  function computeHiddenY(): number {
+    return -(getSafeAreaTop() + 12 + 46 + 16);
+  }
 
   function ptrReset() {
+    ptrHiddenY = computeHiddenY();
     const wrap    = document.getElementById('ptrWrap')    as HTMLElement | null;
     const arrow   = document.getElementById('ptrArrow')   as HTMLElement | null;
     const spinner = document.getElementById('ptrSpinner') as HTMLElement | null;
     const bubble  = document.getElementById('ptrBubble')  as HTMLElement | null;
     if (!wrap) return;
     wrap.style.transition = '';
-    wrap.style.transform  = `translateY(${PTR_HIDDEN_Y}px)`;
+    wrap.style.transform  = `translateY(${ptrHiddenY}px)`;
     if (arrow)   { arrow.style.display = ''; arrow.style.transform = 'rotate(0deg)'; }
     if (spinner) { spinner.style.display = 'none'; }
     if (bubble)  { bubble.classList.remove('ptr-ready'); }
@@ -1216,6 +1231,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     ptStartY = e.touches[0].clientY;
     ptActive = true;
     ptReady  = false;
+    ptrHiddenY = computeHiddenY();
     const wrap = document.getElementById('ptrWrap') as HTMLElement | null;
     if (wrap) wrap.style.transition = '';
   }, { passive: true });
@@ -1225,7 +1241,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     const deltaY = e.touches[0].clientY - ptStartY;
     if (deltaY <= 0) { ptActive = false; return; }
 
-    // prevent iOS rubber-band bounce while doing PTR
+    // Prevent iOS rubber-band bounce while PTR is active
     e.preventDefault();
 
     const wrap   = document.getElementById('ptrWrap')   as HTMLElement | null;
@@ -1233,11 +1249,14 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     const bubble = document.getElementById('ptrBubble') as HTMLElement | null;
     if (!wrap) return;
 
-    // indicator moves at 85% of finger speed, capped at 16px below top
-    const indicatorY = Math.min(PTR_HIDDEN_Y + deltaY * 0.85, 16);
+    // Multiplier: moves indicator from ptrHiddenY to 0 exactly at PTR_THRESHOLD
+    // so the bubble lands at translateY(0) = padding-top (safe-area + 12px) below notch
+    const range      = Math.abs(ptrHiddenY); // total distance to travel
+    const multiplier = range / PTR_THRESHOLD;
+    const indicatorY = Math.min(ptrHiddenY + deltaY * multiplier, 0);
     wrap.style.transform = `translateY(${indicatorY}px)`;
 
-    // arrow rotates 0→180° as progress goes 0→1
+    // Arrow rotates 0→180° as progress goes 0→1
     const progress = Math.min(deltaY / PTR_THRESHOLD, 1);
     if (arrow) arrow.style.transform = `rotate(${progress * 180}deg)`;
 
@@ -1255,20 +1274,19 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     if (!wrap) return;
 
     if (ptReady) {
-      // snap to visible, show spinner, then reload
+      // Hold in place, swap arrow→spinner, then reload
       wrap.style.transition = 'transform 0.2s ease';
-      wrap.style.transform  = 'translateY(16px)';
+      wrap.style.transform  = 'translateY(0px)';
       if (arrow)   arrow.style.display   = 'none';
       if (spinner) spinner.style.display = '';
-      setTimeout(() => location.reload(), 650);
+      setTimeout(() => location.reload(), 700);
     } else {
-      // snap back
+      // Snap back
       wrap.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-      wrap.style.transform  = `translateY(${PTR_HIDDEN_Y}px)`;
+      wrap.style.transform  = `translateY(${ptrHiddenY}px)`;
     }
   }, { passive: true });
 
-  // Reset visual state on every navigation
   document.addEventListener('astro:page-load', ptrReset);
   ptrReset();
 </script>
