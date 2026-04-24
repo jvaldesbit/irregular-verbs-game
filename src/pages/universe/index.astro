@@ -40,8 +40,10 @@ import Layout from '../../layouts/Layout.astro';
             <input type="email" id="fieldEmail" placeholder="you@example.com" required autocomplete="off" autocapitalize="off" />
           </div>
           <div class="field">
-            <label for="fieldCode">Universe code</label>
-            <input type="text" id="fieldCode" placeholder="E.g. ENG9B" maxlength="12" required autocomplete="off" autocapitalize="characters" class="code-input" />
+            <label for="fieldCode">Universe</label>
+            <select id="fieldCode" required class="code-select">
+              <option value="">Loading universes…</option>
+            </select>
           </div>
 
           <div class="error-msg" id="errorMsg" style="display:none"></div>
@@ -54,15 +56,32 @@ import Layout from '../../layouts/Layout.astro';
       </div>
 
       <div class="divider">Are you a teacher?</div>
-      <p class="teacher-hint">Create a universe from the <a href="https://supabase.com/dashboard/project/fjifxqxdjckxutmoqkmg" target="_blank" rel="noopener">dashboard</a> or ask Julián to create one for you.</p>
+      <div class="teacher-hint">
+        <a href="/admin" class="teacher-link teacher-link--admin">🔐 Sign in to dashboard</a>
+        <a href="https://jcvb.com.co/#contact" target="_blank" rel="noopener" class="teacher-link teacher-link--contact">✉️ Contact Julián</a>
+      </div>
     </main>
   </div>
 </Layout>
 
 <script>
-  import { joinUniverse, getUniverseSession, clearUniverseSession } from '../../utils/supabase.ts';
+  import { joinUniverse, getUniverseSession, clearUniverseSession, getAllUniverses } from '../../utils/supabase.ts';
 
-  function init() {
+  async function loadUniverseOptions() {
+    const sel = document.getElementById('fieldCode') as HTMLSelectElement;
+    const universes = await getAllUniverses();
+    sel.innerHTML = universes.length
+      ? '<option value="">Select a universe…</option>'
+      : '<option value="">No universes available</option>';
+    universes.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.code;
+      opt.textContent = `${u.name} — ${u.code}`;
+      sel.appendChild(opt);
+    });
+  }
+
+  async function init() {
     const session = getUniverseSession();
     const banner  = document.getElementById('sessionBanner') as HTMLElement;
     const nameEl  = document.getElementById('sessionUniverseName') as HTMLElement;
@@ -74,7 +93,9 @@ import Layout from '../../layouts/Layout.astro';
     const joinBtn = document.getElementById('joinBtn') as HTMLButtonElement;
     const joinBtnText = document.getElementById('joinBtnText') as HTMLElement;
     const joinBtnLoading = document.getElementById('joinBtnLoading') as HTMLElement;
-    const fieldCode = document.getElementById('fieldCode') as HTMLInputElement;
+    const fieldCode = document.getElementById('fieldCode') as HTMLSelectElement;
+
+    loadUniverseOptions();
 
     if (session) {
       banner.style.display = 'flex';
@@ -86,10 +107,6 @@ import Layout from '../../layouts/Layout.astro';
     leaveBtn.onclick = () => {
       clearUniverseSession();
       banner.style.display = 'none';
-    };
-
-    fieldCode.oninput = () => {
-      fieldCode.value = fieldCode.value.toUpperCase();
     };
 
     form.onsubmit = async (e) => {
@@ -300,12 +317,23 @@ import Layout from '../../layouts/Layout.astro';
 
   .field input:focus { border-color: #667eea; background: white; }
 
-  .code-input {
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 1.3rem !important;
-    text-align: center;
+  .code-select {
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--r-md);
+    outline: none;
+    color: #1e1b4b;
+    background: #f9fafb;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color var(--t);
+    appearance: auto;
   }
+
+  .code-select:focus { border-color: #667eea; background: white; }
 
   .error-msg {
     font-size: 0.88rem;
@@ -345,15 +373,49 @@ import Layout from '../../layouts/Layout.astro';
   }
 
   .teacher-hint {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    max-width: 300px;
-    line-height: 1.5;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 380px;
   }
 
-  .teacher-hint a {
-    color: rgba(255,255,255,0.75);
+  .teacher-link {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-radius: var(--r-md);
+    font-size: 0.85rem;
     font-weight: 700;
+    text-decoration: none;
+    transition: all var(--t);
+    text-align: center;
+  }
+
+  .teacher-link--admin {
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    border: 1.5px solid rgba(255,255,255,0.2);
+  }
+
+  .teacher-link--admin:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  .teacher-link--contact {
+    background: rgba(102,126,234,0.2);
+    color: #a5b4fc;
+    border: 1.5px solid rgba(102,126,234,0.3);
+  }
+
+  .teacher-link--contact:hover {
+    background: rgba(102,126,234,0.35);
+    color: white;
   }
 </style>
