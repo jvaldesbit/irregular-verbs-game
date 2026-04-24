@@ -11,7 +11,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>{title}</title>
   <meta name="description" content={description}>
 
@@ -265,6 +265,15 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+  }
+
+  html {
+    background: #1e1b4b;
+    overscroll-behavior: none;
+  }
+
+  body {
+    overscroll-behavior: none;
   }
 
   :root {
@@ -1216,6 +1225,9 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     const deltaY = e.touches[0].clientY - ptStartY;
     if (deltaY <= 0) { ptActive = false; return; }
 
+    // prevent iOS rubber-band bounce while doing PTR
+    e.preventDefault();
+
     const wrap   = document.getElementById('ptrWrap')   as HTMLElement | null;
     const arrow  = document.getElementById('ptrArrow')  as HTMLElement | null;
     const bubble = document.getElementById('ptrBubble') as HTMLElement | null;
@@ -1231,7 +1243,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
     ptReady = deltaY >= PTR_THRESHOLD;
     if (bubble) bubble.classList.toggle('ptr-ready', ptReady);
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('touchend', () => {
     if (!ptActive) return;
