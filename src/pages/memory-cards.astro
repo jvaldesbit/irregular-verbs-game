@@ -1,13 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Memory Cards - Irregular Verbs">
+<Layout title="Memory Cards - alunas">
   <div class="page">
     <header class="top-bar">
       <div class="top-row">
         <a href="/" class="back-btn">← Back</a>
-        <h1>🃏 Memory Cards</h1>
+        <h1><Icon name="cards" weight="bold" size={22} /> Memory Cards</h1>
         <div class="top-spacer"></div>
       </div>
       <div class="stats">
@@ -19,7 +20,7 @@ import Layout from '../layouts/Layout.astro';
     <main class="game-area">
       <!-- Instructions -->
       <div class="panel center-panel" id="instructions">
-        <div class="panel-icon">🃏</div>
+        <div class="panel-icon"><Icon name="cards" weight="bold" size={48} /></div>
         <h2>Find the Pairs</h2>
         <p>Flip cards to find matching verb form pairs!</p>
         <div class="diff-group">
@@ -37,14 +38,14 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Game Over -->
       <div class="panel center-panel" id="gameOver" style="display:none">
-        <div class="panel-icon">🎉</div>
+        <div class="panel-icon"><Icon name="confetti" weight="bold" size={48} /></div>
         <h2>Congratulations!</h2>
         <p class="big-result">Completed in <strong id="finalMoves">0</strong> moves!</p>
         <div class="save-record">
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="mcNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="mcSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="mcSaveBtn">Save</button>
           </div>
           <p class="save-done" id="mcSaveDone" style="display:none">✓ Saved!</p>
         </div>

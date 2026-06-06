@@ -1,11 +1,12 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import Icon from '../components/Icon.astro';
 interface Props {
   title: string;
   description?: string;
   bodyClass?: string;
 }
-const { title, description = 'Learn English irregular verbs the fun way', bodyClass = '' } = Astro.props;
+const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="es">
@@ -21,7 +22,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Verb Game">
+  <meta name="apple-mobile-web-app-title" content="alunas">
   <link rel="apple-touch-icon" href="/favicon.svg">
 
   <ClientRouter />
@@ -137,47 +138,47 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Info Modal -->
   <div class="fab-modal" id="infoModal" role="dialog" aria-modal="true" aria-label="How to play">
     <div class="modal-header">
-      <h2>🎮 How to play</h2>
+      <h2><Icon name="game-controller" weight="bold" size={20} /> How to play</h2>
       <button class="modal-close" id="infoClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
       <div class="mode-item">
-        <span class="mode-emoji">⚡</span>
+        <span class="mode-emoji"><Icon name="lightning" weight="bold" size={26} /></span>
         <div>
           <strong>Quick Match</strong>
           <p>4 options to choose the correct verb form. Fast and direct.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">🏃</span>
+        <span class="mode-emoji"><Icon name="person-simple-run" weight="bold" size={26} /></span>
         <div>
           <strong>Speed Challenge</strong>
           <p>60 seconds to match verbs between two columns. The more the better!</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">⌨️</span>
+        <span class="mode-emoji"><Icon name="keyboard" weight="bold" size={26} /></span>
         <div>
           <strong>Type Master</strong>
           <p>Type the correct verb form. Great for practicing spelling.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">🃏</span>
+        <span class="mode-emoji"><Icon name="cards" weight="bold" size={26} /></span>
         <div>
           <strong>Memory Cards</strong>
           <p>Flip cards to find matching verb pairs. 6, 8 or 10 pairs.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">♾️</span>
+        <span class="mode-emoji"><Icon name="infinity" weight="bold" size={26} /></span>
         <div>
           <strong>Practice</strong>
           <p>Browse or self-quiz all verbs at your own pace.</p>
         </div>
       </div>
       <div class="mode-tip">
-        💡 Go to <strong>Settings ⚙️</strong> to choose which verb forms to practice.
+        Go to <strong>Settings</strong> to choose which verb forms to practice.
       </div>
     </div>
   </div>
@@ -185,7 +186,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Share Modal -->
   <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Share">
     <div class="modal-header">
-      <h2>📤 Share</h2>
+      <h2><Icon name="export" weight="bold" size={20} /> Share</h2>
       <button class="modal-close" id="shareClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body share-body">
@@ -223,7 +224,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Author Modal -->
   <div class="fab-modal" id="authorModal" role="dialog" aria-modal="true" aria-label="About the author">
     <div class="modal-header">
-      <h2>👤 About</h2>
+      <h2><Icon name="user" weight="bold" size={20} /> About</h2>
       <button class="modal-close" id="authorClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body author-body">
@@ -268,7 +269,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Name required modal (shown on first visit, cannot be dismissed) -->
   <div class="name-modal-wrap" id="nameModalWrap" style="display:none" aria-modal="true" role="dialog" aria-label="Enter your name">
     <div class="name-modal">
-      <div class="name-modal-icon">🎮</div>
+      <div class="name-modal-icon"><Icon name="game-controller" weight="bold" size={48} /></div>
       <h2 class="name-modal-title">Welcome!</h2>
       <p class="name-modal-sub">Enter your name to track your scores and compete on leaderboards.</p>
       <form class="name-modal-form" id="nameModalForm" autocomplete="off">
@@ -1212,7 +1213,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
     // --- Share ---
     const appUrl = window.location.origin;
-    const shareText = 'Practice English irregular verbs the fun way! 🎮';
+    const shareText = 'Practice English the fun way with alunas.co!';
 
     const waLink  = document.getElementById('shareWa') as HTMLAnchorElement;
     const smsLink = document.getElementById('shareSms') as HTMLAnchorElement;
@@ -1224,7 +1225,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     if (typeof navigator.share === 'function') {
       nativeBtn.style.display = 'flex';
       nativeBtn.onclick = () => {
-        navigator.share({ title: 'Irregular Verbs Game', text: shareText, url: appUrl }).catch(() => {});
+        navigator.share({ title: 'alunas.co', text: shareText, url: appUrl }).catch(() => {});
       };
     }
 

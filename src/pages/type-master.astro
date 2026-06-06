@@ -1,13 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Type Master - Irregular Verbs">
+<Layout title="Type Master - alunas">
   <div class="page">
     <header class="top-bar">
       <div class="top-row">
         <a href="/" class="back-btn">← Back</a>
-        <h1>⌨️ Type Master</h1>
+        <h1><Icon name="keyboard" weight="bold" size={22} /> Type Master</h1>
         <div class="top-spacer"></div>
       </div>
       <div class="stats">
@@ -47,7 +48,7 @@ import Layout from '../layouts/Layout.astro';
     <!-- Session-end overlay (shown on wrong answer when score > 0) -->
     <div class="session-overlay" id="sessionOverlay" style="display:none">
       <div class="session-card">
-        <div class="session-icon">⌨️</div>
+        <div class="session-icon"><Icon name="keyboard" weight="bold" size={52} /></div>
         <h2>Session Over</h2>
         <p class="session-score">Score: <strong id="sessionScore">0</strong> correct</p>
         <p class="session-acc">Accuracy: <strong id="sessionAcc">0%</strong></p>
@@ -55,7 +56,7 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="tmNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="tmSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="tmSaveBtn">Save</button>
           </div>
           <p class="save-done" id="tmSaveDone" style="display:none">✓ Saved!</p>
         </div>

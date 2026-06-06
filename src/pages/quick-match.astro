@@ -1,19 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { ph } from '../utils/ph';
+
+const qmIcons = {
+  heartFill:  ph('heart',       'fill', 22),
+  heartEmpty: ph('heart',       'regular', 22),
+  heartBreak: ph('heart-break', 'bold', 52),
+  flag:       ph('flag',        'bold', 52),
+  timer:      ph('timer',       'bold', 52),
+};
 ---
 
-<Layout title="Quick Match - Irregular Verbs" bodyClass="qm-body">
+<Layout title="Quick Match - alunas" bodyClass="qm-body">
   <div class="page">
     <header class="top-bar">
       <div class="top-row">
         <a href="/" class="back-btn">← Back</a>
-        <h1>🎯 Quick Match</h1>
+        <h1><Icon name="target" weight="bold" size={22} /> Quick Match</h1>
         <div class="top-spacer"></div>
       </div>
       <div class="stats" id="statsRow">
         <div class="stat-badge" id="scoreBadge">Score <strong id="score">0</strong></div>
-        <div class="stat-badge" id="streakBadge">🔥 <strong id="streak">0</strong></div>
-        <div class="stat-badge" id="timerBadge" style="display:none">⏱️ <strong id="timerDisplay">5:00</strong></div>
+        <div class="stat-badge" id="streakBadge"><Icon name="fire" weight="bold" size={16} /> <strong id="streak">0</strong></div>
+        <div class="stat-badge" id="timerBadge" style="display:none"><Icon name="timer" weight="bold" size={16} /> <strong id="timerDisplay">5:00</strong></div>
         <div class="stat-badge best-badge" id="bestBadge">Best <strong id="best">0</strong></div>
       </div>
     </header>
@@ -29,17 +39,17 @@ import Layout from '../layouts/Layout.astro';
       <p class="mode-title">Choose a mode</p>
       <div class="mode-cards">
         <button class="mode-card" data-mode="endless">
-          <span class="mode-icon">♾️</span>
+          <span class="mode-icon"><Icon name="infinity" weight="bold" size={32} /></span>
           <strong>Endless</strong>
           <span>No lives · No timer<br>Score forever</span>
         </button>
         <button class="mode-card" data-mode="survival">
-          <span class="mode-icon">❤️</span>
+          <span class="mode-icon"><Icon name="heart" weight="bold" size={32} /></span>
           <strong>Survival</strong>
           <span>3 lives · +1 every<br>10 streak</span>
         </button>
         <button class="mode-card" data-mode="rush">
-          <span class="mode-icon">⏱️</span>
+          <span class="mode-icon"><Icon name="timer" weight="bold" size={32} /></span>
           <strong>Rush</strong>
           <span>Timer per question<br>5 min → 10 sec</span>
         </button>
@@ -66,7 +76,7 @@ import Layout from '../layouts/Layout.astro';
     <!-- Game Over panel -->
     <div class="gameover-overlay" id="gameOverPanel" style="display:none">
       <div class="gameover-card">
-        <div class="go-icon" id="goIcon">💔</div>
+        <div class="go-icon" id="goIcon"></div>
         <h2 id="goTitle">Game Over</h2>
         <p class="go-stat">Score: <strong id="goScore">0</strong></p>
         <p class="go-stat">Best streak: <strong id="goStreak">0</strong></p>
@@ -75,14 +85,14 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="goNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="goSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="goSaveBtn">Save</button>
           </div>
           <p class="save-done" id="goSaveDone" style="display:none">✓ Saved!</p>
         </div>
         <div class="go-btns">
           <button class="go-btn go-btn--play" id="goPlayAgain">Play Again</button>
           <button class="go-btn go-btn--change" id="goChangeMode">Change Mode</button>
-          <a href="/scores" class="go-btn go-btn--scores">🏆 Records</a>
+          <a href="/scores" class="go-btn go-btn--scores"><Icon name="trophy" weight="bold" size={18} /> Records</a>
         </div>
       </div>
     </div>
@@ -93,7 +103,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
+<script define:vars={{ qmIcons }}>
   import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
   import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
@@ -134,13 +144,13 @@ import Layout from '../layouts/Layout.astro';
   function renderLives() {
     const el = document.getElementById('livesHearts') as HTMLElement;
     el.innerHTML =
-      Array.from({ length: Math.max(lives, 0) }, () => '<span class="heart">❤️</span>').join('') +
-      Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => '<span class="heart lost">🖤</span>').join('');
+      Array.from({ length: Math.max(lives, 0) }, () => `<span class="heart">${qmIcons.heartFill}</span>`).join('') +
+      Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => `<span class="heart lost">${qmIcons.heartEmpty}</span>`).join('');
   }
 
   function showBonus() {
     const el = document.getElementById('bonusMsg') as HTMLElement;
-    el.textContent = '+1 life 🎉';
+    el.textContent = '+1 life!';
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2000);
   }
@@ -202,7 +212,7 @@ import Layout from '../layouts/Layout.astro';
     allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
 
     const msg = document.getElementById('resultMessage') as HTMLElement;
-    msg.textContent = `⏰ Time's up! — ${currentQuestion.correct}`;
+    msg.textContent = `Time's up! — ${currentQuestion.correct}`;
     msg.className = 'result-msg is-wrong';
 
     playWrong();
@@ -317,11 +327,11 @@ import Layout from '../layouts/Layout.astro';
         lives++;
         renderLives();
         showBonus();
-        msg.textContent = `✓ Correct! +1 life bonus 🎉`;
+        msg.textContent = `✓ Correct! +1 life bonus`;
       } else {
         msg.textContent = gameMode === 'rush'
-          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())} ⏱️`
-          : `✓ Correct! 🔥 ${streak}`;
+          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())}`
+          : `✓ Correct! Streak: ${streak}`;
       }
       msg.className = 'result-msg is-correct';
 
@@ -368,9 +378,9 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('goStreak') as HTMLElement).textContent = String(maxStreak);
     (document.getElementById('goTotal') as HTMLElement).textContent = String(totalQuestions);
 
-    const icons: Record<GameMode, string> = { endless: '🏁', survival: '💔', rush: '⏰' };
+    const icons: Record<GameMode, string> = { endless: qmIcons.flag, survival: qmIcons.heartBreak, rush: qmIcons.timer };
     const titles: Record<GameMode, string> = { endless: 'Session ended', survival: 'Game Over', rush: 'Time\'s up!' };
-    (document.getElementById('goIcon') as HTMLElement).textContent = icons[gameMode];
+    (document.getElementById('goIcon') as HTMLElement).innerHTML = icons[gameMode];
     (document.getElementById('goTitle') as HTMLElement).textContent = titles[gameMode];
 
     (document.getElementById('goNameInput') as HTMLInputElement).value = getPlayerName();
@@ -457,8 +467,8 @@ import Layout from '../layouts/Layout.astro';
     align-items: center;
   }
 
-  :global(.heart) { font-size: 1.5rem; transition: transform 0.2s; }
-  :global(.heart.lost) { filter: grayscale(1); opacity: 0.4; }
+  :global(.heart) { display: flex; align-items: center; color: #ef4444; transition: transform 0.2s; }
+  :global(.heart.lost) { color: #9ca3af; opacity: 0.5; }
 
   :global(.lives-hearts.shake) {
     animation: shakeH 0.45s ease;
@@ -545,7 +555,7 @@ import Layout from '../layouts/Layout.astro';
 
   .mode-card:active { transform: scale(0.98); }
 
-  .mode-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+  .mode-icon { display: flex; align-items: center; flex-shrink: 0; }
 
   .mode-card strong {
     display: block;
@@ -629,7 +639,7 @@ import Layout from '../layouts/Layout.astro';
     box-shadow: var(--sh-lg);
   }
 
-  .go-icon { font-size: 3.5rem; line-height: 1; }
+  .go-icon { display: flex; align-items: center; justify-content: center; color: #ef4444; }
 
   .gameover-card h2 {
     font-size: 1.8rem;

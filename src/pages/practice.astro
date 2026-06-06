@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Practice Mode - Irregular Verbs">
+<Layout title="Practice Mode - alunas">
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>♾️ Practice</h1>
+      <h1><Icon name="infinity" weight="bold" size={22} /> Practice</h1>
       <div class="mode-toggle">
         <button class="mode-btn active" id="btnBrowse">Browse</button>
         <button class="mode-btn" id="btnQuiz">Quiz</button>
@@ -64,7 +65,7 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="prNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="prSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="prSaveBtn">Save</button>
           </div>
           <p class="save-done" id="prSaveDone" style="display:none">✓ Saved!</p>
         </div>

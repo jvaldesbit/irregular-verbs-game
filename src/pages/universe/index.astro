@@ -1,12 +1,13 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
 ---
 
-<Layout title="Universes - Irregular Verbs">
+<Layout title="Universes - alunas">
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>🌐 Universes</h1>
+      <h1><Icon name="globe" weight="bold" size={22} /> Universes</h1>
       <div class="top-spacer"></div>
     </header>
 
@@ -26,7 +27,7 @@ import Layout from '../../layouts/Layout.astro';
 
       <!-- Join form -->
       <div class="card" id="joinCard">
-        <div class="card-icon">🌐</div>
+        <div class="card-icon"><Icon name="globe" weight="bold" size={40} /></div>
         <h2>Join a universe</h2>
         <p class="card-desc">Enter the code your teacher gave you to compete with your class.</p>
 
@@ -57,8 +58,8 @@ import Layout from '../../layouts/Layout.astro';
 
       <div class="divider">Are you a teacher?</div>
       <div class="teacher-hint">
-        <a href="/admin" class="teacher-link teacher-link--admin">🔐 Sign in to dashboard</a>
-        <a href="https://jcvb.com.co/#contact" target="_blank" rel="noopener" class="teacher-link teacher-link--contact">✉️ Contact Julián</a>
+        <a href="/admin" class="teacher-link teacher-link--admin"><Icon name="lock-key" weight="bold" size={16} /> Sign in to dashboard</a>
+        <a href="https://jcvb.com.co/#contact" target="_blank" rel="noopener" class="teacher-link teacher-link--contact"><Icon name="envelope" weight="bold" size={16} /> Contact Julián</a>
       </div>
     </main>
   </div>

@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Settings - Irregular Verbs">
+<Layout title="Settings - alunas">
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>⚙️ Settings</h1>
+      <h1><Icon name="gear-six" weight="bold" size={22} /> Settings</h1>
       <div style="width: 80px"></div>
     </header>
 
@@ -14,7 +15,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="settings-layout">
         <!-- Main card -->
         <div class="card">
-          <h2>👤 Player Name</h2>
+          <h2><Icon name="user" weight="bold" size={20} /> Player Name</h2>
           <p class="desc">Your name appears on the records board.</p>
           <div class="name-row">
             <input type="text" id="playerName" class="name-input" placeholder="Enter your name..." maxlength="24" autocomplete="off">
@@ -39,11 +40,11 @@ import Layout from '../layouts/Layout.astro';
           </form>
 
           <div class="msg success" id="msgOk" style="display:none">✓ Configuración guardada!</div>
-          <div class="msg error" id="msgErr" style="display:none">⚠️ Selecciona al menos 2 campos.</div>
+          <div class="msg error" id="msgErr" style="display:none">Selecciona al menos 2 campos.</div>
 
           <div class="section-divider"></div>
 
-          <h2 class="section-title">🔊 Sound Effects</h2>
+          <h2 class="section-title"><Icon name="speaker-high" weight="bold" size={20} /> Sound Effects</h2>
           <p class="desc">Play sounds on correct and incorrect answers.</p>
           <label class="check-row" id="rowSound">
             <input type="checkbox" id="chkSound">
@@ -57,7 +58,7 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Tips card -->
         <div class="card tips-card">
-          <h3>💡 Tips</h3>
+          <h3><Icon name="lightbulb" weight="bold" size={18} /> Tips</h3>
           <ul>
             <li><strong>Beginner</strong> — Present + Past</li>
             <li><strong>Intermediate</strong> — Add Participle</li>
@@ -65,7 +66,7 @@ import Layout from '../layouts/Layout.astro';
             <li><strong>Spanish speakers</strong> — Enable Spanish for faster learning!</li>
           </ul>
 
-          <h3 style="margin-top:1.5rem">🎮 Game Modes</h3>
+          <h3 style="margin-top:1.5rem"><Icon name="game-controller" weight="bold" size={18} /> Game Modes</h3>
           <ul>
             <li><strong>Quick Match</strong> — 4-option multiple choice</li>
             <li><strong>Speed Challenge</strong> — Match pairs in 60s</li>

@@ -1,55 +1,56 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Irregular Verbs Game">
+<Layout title="alunas.co">
   <div class="page">
     <header class="page-header">
       <div class="logo" id="topicIcon">🎮</div>
       <h1 id="topicTitle">Irregular Verbs</h1>
       <p class="subtitle">Learn English the fun way</p>
-      <button class="topic-chip" id="topicChip" title="Change topic">📚 <span id="topicName">Verbos Irregulares</span> ▾</button>
+      <button class="topic-chip" id="topicChip" title="Change topic"><Icon name="books" weight="bold" size={16} /> <span id="topicName">Verbos Irregulares</span> ▾</button>
     </header>
 
     <main class="grid">
       <a href="/quick-match" class="card card--purple">
-        <span class="card-icon">🎯</span>
+        <span class="card-icon"><Icon name="target" weight="bold" size={36} /></span>
         <h2>Quick Match</h2>
         <p>Multiple choice</p>
       </a>
 
       <a href="/speed-challenge" class="card card--pink">
-        <span class="card-icon">⚡</span>
+        <span class="card-icon"><Icon name="lightning" weight="bold" size={36} /></span>
         <h2>Speed Challenge</h2>
         <p>Race the clock</p>
       </a>
 
       <a href="/type-master" class="card card--indigo">
-        <span class="card-icon">⌨️</span>
+        <span class="card-icon"><Icon name="keyboard" weight="bold" size={36} /></span>
         <h2>Type Master</h2>
         <p>Type the answer</p>
       </a>
 
       <a href="/memory-cards" class="card card--cyan">
-        <span class="card-icon">🃏</span>
+        <span class="card-icon"><Icon name="cards" weight="bold" size={36} /></span>
         <h2>Memory Cards</h2>
         <p>Find the pairs</p>
       </a>
 
       <a href="/practice" class="card card--green">
-        <span class="card-icon">♾️</span>
+        <span class="card-icon"><Icon name="infinity" weight="bold" size={36} /></span>
         <h2>Practice</h2>
         <p>At your own pace</p>
       </a>
 
       <a href="/scores" class="card card--gold">
-        <span class="card-icon">🏆</span>
+        <span class="card-icon"><Icon name="trophy" weight="bold" size={36} /></span>
         <h2>Records</h2>
         <p>Your best scores</p>
       </a>
 
       <a href="/universe" class="card card--universe" id="universeCard">
-        <span class="card-icon">🌐</span>
+        <span class="card-icon"><Icon name="globe" weight="bold" size={36} /></span>
         <h2>Universes</h2>
         <p>Compete with your class</p>
         <span class="universe-badge" id="universeBadge" style="display:none"></span>
@@ -113,26 +114,26 @@ import Layout from '../layouts/Layout.astro';
   }
   .topic-chip:hover { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.55); }
 
-  /* Topic picker modal */
-  .topic-modal-backdrop {
+  /* Topic picker modal — :global() needed because element is created dynamically in JS */
+  :global(.topic-modal-backdrop) {
     position: fixed; inset: 0; z-index: 200;
     background: rgba(15,12,41,0.72);
     backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
     padding: 1.5rem;
   }
-  .topic-modal {
+  :global(.topic-modal) {
     background: white; border-radius: var(--r-xl);
     padding: 1.75rem 1.5rem 1.5rem;
     width: 100%; max-width: 420px;
     display: flex; flex-direction: column; gap: 1rem;
     box-shadow: var(--sh-lg);
   }
-  .topic-modal h3 {
+  :global(.topic-modal h3) {
     font-size: 1.15rem; font-weight: 900; color: #1e1b4b; letter-spacing: -0.02em;
   }
-  .topic-list { display: flex; flex-direction: column; gap: 0.5rem; }
-  .topic-option {
+  :global(.topic-list) { display: flex; flex-direction: column; gap: 0.5rem; }
+  :global(.topic-option) {
     display: flex; align-items: center; gap: 0.85rem;
     padding: 0.9rem 1rem;
     border: 2px solid #e5e7eb; border-radius: var(--r-md);
@@ -140,19 +141,19 @@ import Layout from '../layouts/Layout.astro';
     transition: all var(--t); text-align: left;
     font-family: var(--font);
   }
-  .topic-option:hover { border-color: #667eea; background: #f0f1ff; }
-  .topic-option.active { border-color: #667eea; background: #eef2ff; }
-  .topic-icon { font-size: 1.5rem; line-height: 1; }
-  .topic-info strong { display: block; font-size: 0.95rem; font-weight: 800; color: #1e1b4b; }
-  .topic-info small  { font-size: 0.78rem; color: #6b7280; }
-  .topic-modal-close {
+  :global(.topic-option:hover) { border-color: #667eea; background: #f0f1ff; }
+  :global(.topic-option.active) { border-color: #667eea; background: #eef2ff; }
+  :global(.topic-icon) { font-size: 1.5rem; line-height: 1; }
+  :global(.topic-info strong) { display: block; font-size: 0.95rem; font-weight: 800; color: #1e1b4b; }
+  :global(.topic-info small)  { font-size: 0.78rem; color: #6b7280; }
+  :global(.topic-modal-close) {
     align-self: flex-end; padding: 0.4rem 0.9rem;
     background: #f3f4f6; border: none; border-radius: var(--r-sm);
     font-family: var(--font); font-size: 0.85rem; font-weight: 700;
     color: #374151; cursor: pointer; transition: background var(--t);
   }
-  .topic-modal-close:hover { background: #e5e7eb; }
-  .topic-modal-loading { text-align: center; color: #9ca3af; font-size: 0.9rem; padding: 1rem 0; }
+  :global(.topic-modal-close:hover) { background: #e5e7eb; }
+  :global(.topic-modal-loading) { text-align: center; color: #9ca3af; font-size: 0.9rem; padding: 1rem 0; }
 
   .grid {
     display: grid;
@@ -193,7 +194,7 @@ import Layout from '../layouts/Layout.astro';
   .card:hover { transform: translateY(-5px); box-shadow: var(--sh-lg); }
   .card:active { transform: translateY(-2px); }
 
-  .card-icon { font-size: 2.2rem; line-height: 1; }
+  .card-icon { display: flex; align-items: center; justify-content: center; line-height: 1; }
   .card h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; }
   .card p { font-size: 0.82rem; opacity: 0.88; font-weight: 500; }
 

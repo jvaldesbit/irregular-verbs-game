@@ -1,18 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { ph } from '../utils/ph';
+
+const gameIcons = {
+  'quick-match':     ph('target',   'bold', 18),
+  'speed-challenge': ph('lightning','bold', 18),
+  'type-master':     ph('keyboard', 'bold', 18),
+  'memory-cards':    ph('cards',    'bold', 18),
+  'practice':        ph('infinity', 'bold', 18),
+};
 ---
 
-<Layout title="Records - Irregular Verbs">
+<Layout title="Records - alunas">
   <div class="page" id="scores-page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>🏆 Records</h1>
+      <h1><Icon name="trophy" weight="bold" size={22} /> Records</h1>
       <div style="width:80px"></div>
     </header>
 
     <main class="records-area">
       <div id="noName" class="name-prompt" style="display:none">
-        <p>Set your player name in <a href="/settings">Settings ⚙️</a> to start saving records.</p>
+        <p>Set your player name in <a href="/settings">Settings</a> to start saving records.</p>
       </div>
 
       <div id="recordsGrid" class="records-grid"></div>
@@ -20,15 +30,15 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
+<script define:vars={{ gameIcons }}>
   import { getScores, getPlayerName } from '../utils/scores.ts';
 
   const GAMES = [
-    { id: 'quick-match',     icon: '🎯', name: 'Quick Match',      unit: 'pts',     higherBetter: true  },
-    { id: 'speed-challenge', icon: '⚡', name: 'Speed Challenge',  unit: 'pairs',   higherBetter: true  },
-    { id: 'type-master',     icon: '⌨️', name: 'Type Master',      unit: 'correct', higherBetter: true  },
-    { id: 'memory-cards',    icon: '🃏', name: 'Memory Cards',     unit: 'moves',   higherBetter: false },
-    { id: 'practice',        icon: '♾️', name: 'Practice',         unit: '%',       higherBetter: true  },
+    { id: 'quick-match',     icon: gameIcons['quick-match'],     name: 'Quick Match',      unit: 'pts',     higherBetter: true  },
+    { id: 'speed-challenge', icon: gameIcons['speed-challenge'], name: 'Speed Challenge',  unit: 'pairs',   higherBetter: true  },
+    { id: 'type-master',     icon: gameIcons['type-master'],     name: 'Type Master',      unit: 'correct', higherBetter: true  },
+    { id: 'memory-cards',    icon: gameIcons['memory-cards'],    name: 'Memory Cards',     unit: 'moves',   higherBetter: false },
+    { id: 'practice',        icon: gameIcons['practice'],        name: 'Practice',         unit: '%',       higherBetter: true  },
   ] as const;
 
   function formatDate(iso: string) {
@@ -49,7 +59,7 @@ import Layout from '../layouts/Layout.astro';
       const rows = entries.length
         ? entries.map((e, i) => `
             <tr class="${i === 0 ? 'top-row' : ''}">
-              <td class="rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</td>
+              <td class="rank ${i === 0 ? 'rank--gold' : i === 1 ? 'rank--silver' : i === 2 ? 'rank--bronze' : ''}">${i < 3 ? `#${i+1}` : `#${i+1}`}</td>
               <td class="entry-name">${e.name}</td>
               <td class="entry-score">${e.label}</td>
               <td class="entry-date">${formatDate(e.date)}</td>
@@ -162,7 +172,10 @@ import Layout from '../layouts/Layout.astro';
     border-bottom: 1px solid rgba(255,255,255,0.15);
   }
 
-  #scores-page .game-icon { font-size: 1.2rem; }
+  #scores-page .game-icon { display: flex; align-items: center; }
+  #scores-page .rank--gold   { color: #f59e0b; font-weight: 900; }
+  #scores-page .rank--silver { color: #94a3b8; font-weight: 900; }
+  #scores-page .rank--bronze { color: #b45309; font-weight: 900; }
 
   #scores-page .game-name {
     font-size: 1rem;

@@ -1,19 +1,20 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Speed Challenge - Irregular Verbs">
+<Layout title="Speed Challenge - alunas">
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>⚡ Speed Challenge</h1>
+      <h1><Icon name="lightning" weight="bold" size={22} /> Speed Challenge</h1>
       <div class="timer-badge" id="timer">60s</div>
     </header>
 
     <main class="game-area">
       <!-- Instructions -->
       <div class="panel center-panel" id="instructions">
-        <div class="panel-icon">⚡</div>
+        <div class="panel-icon"><Icon name="lightning" weight="bold" size={48} /></div>
         <h2>How to Play</h2>
         <p>Click one word from each column to match verb pairs.<br>Get as many as you can in <strong>60 seconds</strong>!</p>
         <button class="action-btn btn--pink" id="startBtn">Start Game</button>
@@ -39,7 +40,7 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Game Over -->
       <div class="panel center-panel" id="gameOver" style="display:none">
-        <div class="panel-icon">🎉</div>
+        <div class="panel-icon"><Icon name="confetti" weight="bold" size={48} /></div>
         <h2>Time's Up!</h2>
         <p class="big-result">You matched <strong id="finalScore">0</strong> pairs!</p>
         <p class="best-result">Best: <strong id="bestScore">0</strong></p>
@@ -47,7 +48,7 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="scNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="scSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="scSaveBtn">Save</button>
           </div>
           <p class="save-done" id="scSaveDone" style="display:none">✓ Saved!</p>
         </div>

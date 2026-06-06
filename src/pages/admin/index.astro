@@ -1,15 +1,25 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import { ph } from '../../utils/ph';
+
+const adminIcons = {
+  trash:    ph('trash',          'bold', 16),
+  link:     ph('link',           'bold', 16),
+  mobile:   ph('device-mobile',  'bold', 14),
+  tablet:   ph('device-tablet',  'bold', 14),
+  monitor:  ph('monitor',        'bold', 14),
+};
 ---
 
-<Layout title="Admin — Irregular Verbs">
+<Layout title="Admin — alunas">
   <!-- Login screen -->
   <div class="screen" id="loginScreen">
     <a href="/" class="back-to-game">← Back to game</a>
     <div class="login-card">
-      <div class="login-icon">🔐</div>
+      <div class="login-icon"><Icon name="lock-key" weight="bold" size={48} /></div>
       <h1>Admin</h1>
-      <p class="login-sub">Irregular Verbs Game</p>
+      <p class="login-sub">alunas.co</p>
 
       <form class="login-form" id="loginForm" autocomplete="off">
         <div class="field">
@@ -34,7 +44,7 @@ import Layout from '../../layouts/Layout.astro';
     <header class="dash-header">
       <div class="dash-title">
         <a href="/" class="back-to-game back-to-game--dash">← Game</a>
-        <span class="dash-icon">🎮</span>
+        <span class="dash-icon"><Icon name="game-controller" weight="bold" size={20} /></span>
         <span>Admin</span>
       </div>
       <button class="btn-logout" id="logoutBtn">Sign out</button>
@@ -68,7 +78,7 @@ import Layout from '../../layouts/Layout.astro';
       <!-- Topics panel -->
       <section class="panel" id="topicsPanel">
         <div class="panel-header">
-          <h2>📚 Temas de Aprendizaje</h2>
+          <h2><Icon name="books" weight="bold" size={18} /> Temas de Aprendizaje</h2>
           <button class="btn-add" id="btnShowTopicCreate">+ Nuevo tema</button>
         </div>
 
@@ -81,7 +91,7 @@ import Layout from '../../layouts/Layout.astro';
             <input type="text"   id="tIcon"   placeholder="Emoji/icono"  maxlength="8"  class="code-inp" style="width:80px" />
           </div>
           <div class="topic-upload-row">
-            <label class="upload-label" for="tJsonFile">📄 Sube el JSON del tema:</label>
+            <label class="upload-label" for="tJsonFile"><Icon name="file-arrow-up" weight="bold" size={16} /> Sube el JSON del tema:</label>
             <input type="file" id="tJsonFile" accept=".json" class="file-input" />
           </div>
           <div class="create-actions">
@@ -100,7 +110,7 @@ import Layout from '../../layouts/Layout.astro';
       <!-- R2 config panel -->
       <section class="panel" id="r2Panel">
         <div class="panel-header">
-          <h2>☁️ Configuración R2</h2>
+          <h2><Icon name="cloud" weight="bold" size={18} /> Configuración R2</h2>
           <button class="btn-add" id="btnSaveR2">Guardar</button>
         </div>
         <div class="r2-form">
@@ -132,7 +142,7 @@ import Layout from '../../layouts/Layout.astro';
       <!-- Visitors panel -->
       <section class="panel" id="visitorsPanel">
         <div class="panel-header">
-          <h2>👥 Visitors <span class="visitors-badge" id="visitorsBadge"></span></h2>
+          <h2><Icon name="users" weight="bold" size={18} /> Visitors <span class="visitors-badge" id="visitorsBadge"></span></h2>
           <button class="btn-add" id="btnRefreshVisitors">↻ Refresh</button>
         </div>
         <div class="scores-table-wrap">
@@ -185,7 +195,7 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
+<script define:vars={{ adminIcons }}>
   import {
     adminLogin, adminLogout, getAdminSession,
     getAllUniverses, createUniverse, deleteUniverse, getAllScores,
@@ -288,7 +298,7 @@ import Layout from '../../layouts/Layout.astro';
         </div>
         <div class="u-actions">
           <a class="btn-scores" href="${t.payload_url}" target="_blank" rel="noopener">JSON ↗</a>
-          <button class="btn-delete" data-id="${t.id}" data-slug="${t.slug}">🗑</button>
+          <button class="btn-delete" data-id="${t.id}" data-slug="${t.slug}">${adminIcons.trash}</button>
         </div>
       </div>
     `).join('');
@@ -419,8 +429,8 @@ import Layout from '../../layouts/Layout.astro';
         </div>
         <div class="u-actions">
           <button class="btn-scores" data-code="${u.code}" data-name="${u.name}">Scores</button>
-          <button class="btn-copy" data-code="${u.code}" title="Copy join link">🔗</button>
-          <button class="btn-delete" data-code="${u.code}" title="Delete universe">🗑</button>
+          <button class="btn-copy" data-code="${u.code}" title="Copy join link">${adminIcons.link}</button>
+          <button class="btn-delete" data-code="${u.code}" title="Delete universe">${adminIcons.trash}</button>
         </div>
       </div>
     `).join('');
@@ -500,7 +510,7 @@ import Layout from '../../layouts/Layout.astro';
         const url  = `${window.location.origin}/universe/room?code=${code}`;
         navigator.clipboard.writeText(url).then(() => {
           target.textContent = '✓';
-          setTimeout(() => { target.textContent = '🔗'; }, 1500);
+          setTimeout(() => { target.innerHTML = adminIcons.link; }, 1500);
         });
       }
     };
@@ -527,13 +537,13 @@ import Layout from '../../layouts/Layout.astro';
       return;
     }
 
-    const DEVICE_ICON: Record<string, string> = { mobile: '📱', tablet: '📟', desktop: '💻' };
+    const DEVICE_ICON: Record<string, string> = { mobile: adminIcons.mobile, tablet: adminIcons.tablet, desktop: adminIcons.monitor };
 
     tbody.innerHTML = sessions.map((s, i) => `
       <tr>
         <td class="td-rank">${i + 1}</td>
         <td class="td-name">${s.player_name ? `<strong>${s.player_name}</strong>` : '<span style="color:rgba(255,255,255,0.25)">—</span>'}</td>
-        <td class="td-game">${DEVICE_ICON[s.device_type ?? ''] ?? ''} ${s.device_type ?? '—'}</td>
+        <td class="td-game" style="display:flex;align-items:center;gap:4px">${DEVICE_ICON[s.device_type ?? ''] ?? ''} ${s.device_type ?? '—'}</td>
         <td class="td-game">${s.browser ?? '—'}</td>
         <td class="td-game">${s.os ?? '—'}</td>
         <td class="td-date">${fmtDate(s.first_seen)}</td>
