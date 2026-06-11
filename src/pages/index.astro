@@ -168,6 +168,18 @@ import Icon from '../components/Icon.astro';
     letter-spacing: 0.09em; color: var(--muted); padding: 0.5rem 0.25rem 0.25rem;
   }
   :global(.topic-local-badge) { font-size: 0.9rem; flex-shrink: 0; }
+  :global(.topic-row) { display: flex; align-items: center; gap: 0.4rem; }
+  :global(.topic-row .topic-option) { flex: 1; }
+  :global(.topic-delete-btn) {
+    flex-shrink: 0;
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
+    border-radius: var(--r-sm);
+    color: #f87171; font-size: 0.75rem; font-weight: 800;
+    cursor: pointer; transition: all var(--t);
+  }
+  :global(.topic-delete-btn:hover) { background: rgba(239,68,68,0.28); border-color: rgba(239,68,68,0.5); color: #fca5a5; }
 
   .grid {
     display: grid;
@@ -258,6 +270,7 @@ import Icon from '../components/Icon.astro';
 <script>
   import { getUniverseSession } from '../utils/supabase.ts';
   import { getActiveTopicLabel, getTopics, setActiveTopic } from '../utils/topics.ts';
+  import { deleteLocalTopic } from '../utils/localTopics.ts';
 
   let topicModalEl: HTMLElement | null = null;
 
@@ -306,15 +319,20 @@ import Icon from '../components/Icon.astro';
       const localTopics  = topics.filter(t => t.source === 'local');
 
       function topicBtn(t: typeof topics[0]) {
+        const deleteBtn = t.source === 'local'
+          ? `<button class="topic-delete-btn" data-delete="${t.slug}" title="Eliminar tema" aria-label="Eliminar">✕</button>`
+          : '';
         return `
-          <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
-            <span class="topic-icon">${t.icon}</span>
-            <span class="topic-info">
-              <strong>${t.name_es}</strong>
-              <small>${t.name_en}${t.source === 'local' ? ' · local' : ''}</small>
-            </span>
-            ${t.source === 'local' ? '<span class="topic-local-badge">📱</span>' : ''}
-          </button>`;
+          <div class="topic-row">
+            <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
+              <span class="topic-icon">${t.icon}</span>
+              <span class="topic-info">
+                <strong>${t.name_es}</strong>
+                <small>${t.name_en}${t.source === 'local' ? ' · local' : ''}</small>
+              </span>
+            </button>
+            ${deleteBtn}
+          </div>`;
       }
 
       let html = globalTopics.map(topicBtn).join('');
@@ -330,6 +348,20 @@ import Icon from '../components/Icon.astro';
           setActiveTopic(chosen);
           updateTopicBadge();
           closeTopicModal();
+        };
+      });
+
+      list.querySelectorAll<HTMLButtonElement>('.topic-delete-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const slug = btn.dataset.delete!;
+          const topic = topics.find(t => t.slug === slug);
+          if (!confirm(`¿Eliminar "${topic?.name_es ?? slug}"?`)) return;
+          deleteLocalTopic(slug);
+          const active = localStorage.getItem('verbGame_activeTopic');
+          if (active === slug) localStorage.removeItem('verbGame_activeTopic');
+          updateTopicBadge();
+          openTopicModal();
         };
       });
     } catch {
