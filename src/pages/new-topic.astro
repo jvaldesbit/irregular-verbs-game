@@ -60,8 +60,18 @@ import Icon from '../components/Icon.astro';
 
       <!-- Step 3: Review -->
       <div class="step" id="step3" style="display:none">
-        <div class="step-icon" id="reviewIcon">📚</div>
-        <h2>Revisa el tema extraído</h2>
+
+        <!-- Preview card (A+C) -->
+        <div class="topic-preview-card">
+          <div class="topic-preview-glow"></div>
+          <div class="topic-preview-icon" id="previewCardIcon">📚</div>
+          <div class="topic-preview-info">
+            <strong id="previewCardName">Tema extraído</strong>
+            <span class="topic-preview-count" id="previewCardCount">0 elementos</span>
+          </div>
+        </div>
+
+        <p class="step-desc" style="margin-top:-0.5rem">Revisa y edita antes de guardar</p>
 
         <div class="meta-form">
           <div class="meta-field">
@@ -85,10 +95,6 @@ import Icon from '../components/Icon.astro';
         </div>
 
         <div class="preview-table-wrap">
-          <div class="preview-table-header">
-            <span id="itemCount" class="item-count"></span>
-            <span id="fieldList" class="field-list"></span>
-          </div>
           <div class="preview-table-scroll">
             <table class="preview-table" id="previewTable">
               <thead id="previewThead"></thead>
@@ -214,22 +220,32 @@ import Icon from '../components/Icon.astro';
     }
   };
 
+  // ── Preview card live update ──────────────────────────────────────────────────
+  function updatePreviewCard() {
+    const name = (document.getElementById('metaNameEs') as HTMLInputElement).value || 'Sin nombre';
+    const icon = (document.getElementById('metaIcon')   as HTMLInputElement).value || '📚';
+    (document.getElementById('previewCardIcon') as HTMLElement).textContent = icon;
+    (document.getElementById('previewCardName') as HTMLElement).textContent = name;
+  }
+
+  document.getElementById('metaNameEs')!.addEventListener('input', updatePreviewCard);
+  document.getElementById('metaIcon')!.addEventListener('input', updatePreviewCard);
+
   // ── Review rendering ──────────────────────────────────────────────────────────
   function renderReview(result: GeminiTopicResult) {
     (document.getElementById('metaNameEs')  as HTMLInputElement).value = result.meta.name_es;
     (document.getElementById('metaNameEn')  as HTMLInputElement).value = result.meta.name_en;
     (document.getElementById('metaIcon')    as HTMLInputElement).value = result.meta.icon;
     (document.getElementById('metaSlug')    as HTMLInputElement).value = result.meta.slug;
-    (document.getElementById('reviewIcon')  as HTMLElement).textContent = result.meta.icon;
+
+    (document.getElementById('previewCardIcon') as HTMLElement).textContent = result.meta.icon;
+    (document.getElementById('previewCardName') as HTMLElement).textContent = result.meta.name_es;
 
     const { fields, items } = result.payload;
+
+    (document.getElementById('previewCardCount') as HTMLElement).textContent =
+      `${items.length} elemento${items.length !== 1 ? 's' : ''} extraído${items.length !== 1 ? 's' : ''}`;
     const PREVIEW_ROWS = 5;
-
-    (document.getElementById('itemCount') as HTMLElement).textContent =
-      `${items.length} elemento${items.length !== 1 ? 's' : ''}`;
-
-    (document.getElementById('fieldList') as HTMLElement).textContent =
-      fields.map(f => f.label_es).join(' · ');
 
     const thead = document.getElementById('previewThead') as HTMLElement;
     thead.innerHTML = `<tr>${fields.map(f => `<th>${f.label_es}</th>`).join('')}</tr>`;
@@ -524,6 +540,77 @@ import Icon from '../components/Icon.astro';
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Topic preview card (step 3) ── */
+  .topic-preview-card {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0,240,255,0.12) 0%, rgba(0,255,163,0.08) 100%);
+    border: 1.5px solid rgba(0,240,255,0.28);
+    border-radius: var(--r-xl);
+    padding: 2rem 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 48px rgba(0,240,255,0.07), 0 8px 32px rgba(0,0,0,0.3);
+    backdrop-filter: blur(12px);
+    text-align: center;
+  }
+
+  .topic-preview-glow {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(0,240,255,0.22) 0%, rgba(0,255,163,0.1) 45%, transparent 70%);
+    pointer-events: none;
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+    50%       { opacity: 1;   transform: translateX(-50%) scale(1.18); }
+  }
+
+  .topic-preview-icon {
+    font-size: 3.75rem;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 16px rgba(0,240,255,0.35));
+  }
+
+  .topic-preview-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topic-preview-info strong {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+
+  .topic-preview-count {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #00ffa3;
+    background: rgba(0,255,163,0.12);
+    border: 1px solid rgba(0,255,163,0.28);
+    border-radius: 99px;
+    padding: 0.25rem 0.8rem;
+    letter-spacing: 0.02em;
+  }
+
   /* ── Meta form ── */
   .meta-form {
     width: 100%;
@@ -575,71 +662,77 @@ import Icon from '../components/Icon.astro';
   /* ── Preview table ── */
   .preview-table-wrap {
     width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(10, 15, 36, 0.7);
+    border: 1.5px solid rgba(0,240,255,0.2);
     border-radius: var(--r-lg);
     overflow: hidden;
-  }
-
-  .preview-table-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .item-count {
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: #00f0ff;
-  }
-
-  .field-list {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.45);
-    font-weight: 500;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(0,240,255,0.08);
   }
 
   .preview-table-scroll {
     overflow-x: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.2) transparent;
+    scrollbar-color: rgba(0,240,255,0.3) transparent;
   }
 
-  .preview-table {
+  :global(.preview-table) {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
   }
 
-  .preview-table th {
-    padding: 0.6rem 0.9rem;
+  :global(.preview-table thead tr) {
+    background: linear-gradient(90deg, rgba(0,240,255,0.15), rgba(0,255,163,0.08));
+    border-bottom: 1.5px solid rgba(0,240,255,0.25);
+  }
+
+  :global(.preview-table th) {
+    padding: 0.75rem 1rem;
     text-align: left;
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(255,255,255,0.45);
-    background: rgba(255,255,255,0.04);
+    letter-spacing: 0.08em;
+    color: #00f0ff;
     white-space: nowrap;
   }
 
-  .preview-table td {
-    padding: 0.6rem 0.9rem;
-    color: rgba(255,255,255,0.85);
-    font-weight: 500;
+  :global(.preview-table th:first-child) {
+    color: #00ffa3;
+  }
+
+  :global(.preview-table tbody tr) {
     border-top: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.15s ease;
+  }
+
+  :global(.preview-table tbody tr:nth-child(even)) {
+    background: rgba(255,255,255,0.03);
+  }
+
+  :global(.preview-table tbody tr:hover) {
+    background: rgba(0,240,255,0.06);
+  }
+
+  :global(.preview-table td) {
+    padding: 0.7rem 1rem;
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
     white-space: nowrap;
+  }
+
+  :global(.preview-table td:first-child) {
+    font-weight: 700;
+    color: #ffffff;
   }
 
   .preview-note {
     font-size: 0.75rem;
-    color: rgba(255,255,255,0.35);
-    padding: 0.5rem 1rem;
+    color: rgba(0,240,255,0.5);
+    padding: 0.55rem 1rem;
     text-align: right;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,240,255,0.03);
   }
 
   /* ── Review actions ── */

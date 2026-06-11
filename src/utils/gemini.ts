@@ -53,6 +53,7 @@ Rules:
 - Every item must contain ALL field keys defined in fields[]
 - Fields represent the columns or categories of the data (e.g. base form, past tense, translation)
 - The first field should be the "question" side of the flashcard
+- IMPORTANT: Ignore any pronunciation guides, phonetic transcriptions, or IPA notation present in the image — do NOT include them as fields or values. Written pronunciation is not valid learning content.
 - If the image does not contain educational content suitable for flashcard learning, return:
   { "valid": false, "reason": "explanation in Spanish of why it cannot be used" }`;
 
@@ -75,10 +76,16 @@ export async function saveGeminiConfig(apiKey: string): Promise<void> {
 export async function extractTopicFromFile(file: File): Promise<GeminiResult> {
   const apiKey = await getGeminiKey();
   const genAI  = new GoogleGenerativeAI(apiKey);
-  const model  = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model  = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const arrayBuffer = await file.arrayBuffer();
-  const base64      = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+  const bytes       = new Uint8Array(arrayBuffer);
+  let binary = '';
+  const CHUNK = 8192;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  const base64 = btoa(binary);
 
   const result = await model.generateContent([
     { inlineData: { data: base64, mimeType: file.type as any } },
