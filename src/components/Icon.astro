@@ -1,0 +1,16 @@
+---
+import { ph } from '../utils/ph';
+
+interface Props {
+  name: string;
+  weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
+  size?: number;
+  class?: string;
+}
+
+const { name, weight = 'bold', size = 24, class: cls } = Astro.props;
+
+let svg = ph(name, weight, size);
+svg = svg.replace('<svg ', `<svg aria-hidden="true"${cls ? ` class="${cls}"` : ''} `);
+---
+<Fragment set:html={svg} />

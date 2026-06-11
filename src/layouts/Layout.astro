@@ -1,11 +1,12 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import Icon from '../components/Icon.astro';
 interface Props {
   title: string;
   description?: string;
   bodyClass?: string;
 }
-const { title, description = 'Learn English irregular verbs the fun way', bodyClass = '' } = Astro.props;
+const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="es">
@@ -17,11 +18,12 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#667eea">
+  <meta name="theme-color" content="#0a0f24">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Verb Game">
+  <meta name="apple-mobile-web-app-title" content="alunas">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/favicon.svg">
 
   <ClientRouter />
@@ -137,47 +139,47 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Info Modal -->
   <div class="fab-modal" id="infoModal" role="dialog" aria-modal="true" aria-label="How to play">
     <div class="modal-header">
-      <h2>🎮 How to play</h2>
+      <h2><Icon name="game-controller" weight="bold" size={20} /> How to play</h2>
       <button class="modal-close" id="infoClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
       <div class="mode-item">
-        <span class="mode-emoji">⚡</span>
+        <span class="mode-emoji"><Icon name="lightning" weight="bold" size={26} /></span>
         <div>
           <strong>Quick Match</strong>
           <p>4 options to choose the correct verb form. Fast and direct.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">🏃</span>
+        <span class="mode-emoji"><Icon name="person-simple-run" weight="bold" size={26} /></span>
         <div>
           <strong>Speed Challenge</strong>
           <p>60 seconds to match verbs between two columns. The more the better!</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">⌨️</span>
+        <span class="mode-emoji"><Icon name="keyboard" weight="bold" size={26} /></span>
         <div>
           <strong>Type Master</strong>
           <p>Type the correct verb form. Great for practicing spelling.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">🃏</span>
+        <span class="mode-emoji"><Icon name="cards" weight="bold" size={26} /></span>
         <div>
           <strong>Memory Cards</strong>
           <p>Flip cards to find matching verb pairs. 6, 8 or 10 pairs.</p>
         </div>
       </div>
       <div class="mode-item">
-        <span class="mode-emoji">♾️</span>
+        <span class="mode-emoji"><Icon name="infinity" weight="bold" size={26} /></span>
         <div>
           <strong>Practice</strong>
           <p>Browse or self-quiz all verbs at your own pace.</p>
         </div>
       </div>
       <div class="mode-tip">
-        💡 Go to <strong>Settings ⚙️</strong> to choose which verb forms to practice.
+        Go to <strong>Settings</strong> to choose which verb forms to practice.
       </div>
     </div>
   </div>
@@ -185,7 +187,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Share Modal -->
   <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Share">
     <div class="modal-header">
-      <h2>📤 Share</h2>
+      <h2><Icon name="export" weight="bold" size={20} /> Share</h2>
       <button class="modal-close" id="shareClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body share-body">
@@ -223,7 +225,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Author Modal -->
   <div class="fab-modal" id="authorModal" role="dialog" aria-modal="true" aria-label="About the author">
     <div class="modal-header">
-      <h2>👤 About</h2>
+      <h2><Icon name="user" weight="bold" size={20} /> About</h2>
       <button class="modal-close" id="authorClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body author-body">
@@ -268,7 +270,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   <!-- Name required modal (shown on first visit, cannot be dismissed) -->
   <div class="name-modal-wrap" id="nameModalWrap" style="display:none" aria-modal="true" role="dialog" aria-label="Enter your name">
     <div class="name-modal">
-      <div class="name-modal-icon">🎮</div>
+      <div class="name-modal-icon"><Icon name="game-controller" weight="bold" size={48} /></div>
       <h2 class="name-modal-title">Welcome!</h2>
       <p class="name-modal-sub">Enter your name to track your scores and compete on leaderboards.</p>
       <form class="name-modal-form" id="nameModalForm" autocomplete="off">
@@ -299,12 +301,18 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   :root {
     --sat: env(safe-area-inset-top, 0px);
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --purple:      #667eea;
-    --purple-dark: #764ba2;
-    --green:       #10b981;
-    --green-dark:  #059669;
+    --cyan:        #00f0ff;
+    --green:       #00ffa3;
+    --green-dark:  #00cc85;
+    --purple:      #00f0ff;
+    --purple-dark: #00ffa3;
     --red:         #ef4444;
     --amber:       #f59e0b;
+    --dark:        #0a0f24;
+    --dark2:       #0f1730;
+    --dark3:       #1a2545;
+    --text:        #e2e8f0;
+    --muted:       #8892aa;
     --r-sm:  0.625rem;
     --r-md:  1rem;
     --r-lg:  1.5rem;
@@ -317,7 +325,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   html {
     font-size: 16px;
-    background: #1e1b4b;
+    background: #0a0f24;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -374,7 +382,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   #ptrBubble.ptr-ready {
     background: white;
     border-color: white;
-    color: #1e1b4b;
+    color: #0a0f24;
     transform: scale(1.15);
     box-shadow: 0 8px 28px rgba(0,0,0,0.35);
   }
@@ -560,7 +568,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     bottom: 0;
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--dark2);
     border-radius: var(--r-xl) var(--r-xl) 0 0;
     box-shadow: var(--sh-lg);
     transform: translateY(110%);
@@ -601,14 +609,14 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 1.5rem 1rem;
-    border-bottom: 1px solid rgba(0,0,0,0.07);
+    border-bottom: 1px solid rgba(0,240,255,0.1);
     flex-shrink: 0;
   }
 
   .modal-header h2 {
     font-size: 1.2rem;
     font-weight: 800;
-    color: #1e1b4b;
+    color: #ffffff;
     letter-spacing: -0.02em;
   }
 
@@ -617,8 +625,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     height: 32px;
     border-radius: 50%;
     border: none;
-    background: #f3f4f6;
-    color: #6b7280;
+    background: rgba(255,255,255,0.1);
+    color: var(--muted);
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
@@ -629,7 +637,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     flex-shrink: 0;
   }
 
-  .modal-close:hover { background: #e5e7eb; color: #374151; }
+  .modal-close:hover { background: rgba(255,255,255,0.18); color: white; }
 
   .modal-body {
     padding: 1.25rem 1.5rem 1.75rem;
@@ -645,9 +653,9 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     align-items: flex-start;
     gap: 1rem;
     padding: 0.85rem 1rem;
-    background: #f9fafb;
+    background: var(--dark3);
     border-radius: var(--r-md);
-    border: 1px solid #f3f4f6;
+    border: 1px solid rgba(255,255,255,0.06);
   }
 
   .mode-emoji {
@@ -661,28 +669,28 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     display: block;
     font-size: 0.95rem;
     font-weight: 800;
-    color: #1e1b4b;
+    color: #ffffff;
     margin-bottom: 0.2rem;
   }
 
   .mode-item p {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--muted);
     line-height: 1.5;
     font-weight: 500;
   }
 
   .mode-tip {
     font-size: 0.85rem;
-    color: #4b5563;
-    background: #fffbeb;
-    border: 1px solid #fde68a;
+    color: var(--text);
+    background: rgba(0,255,163,0.07);
+    border: 1px solid rgba(0,255,163,0.2);
     border-radius: var(--r-md);
     padding: 0.75rem 1rem;
     line-height: 1.5;
   }
 
-  .mode-tip strong { color: #92400e; }
+  .mode-tip strong { color: var(--green); }
 
   /* Author modal */
   .author-body { align-items: center; text-align: center; gap: 0.85rem; }
@@ -703,14 +711,14 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   .author-name {
     font-size: 1.2rem;
     font-weight: 800;
-    color: #1e1b4b;
+    color: #ffffff;
     letter-spacing: -0.02em;
   }
 
   .author-role {
     font-size: 0.78rem;
     font-weight: 700;
-    color: #667eea;
+    color: var(--cyan);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-top: -0.4rem;
@@ -718,7 +726,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   .author-bio {
     font-size: 0.88rem;
-    color: #6b7280;
+    color: var(--muted);
     line-height: 1.65;
     font-weight: 500;
     max-width: 340px;
@@ -738,33 +746,33 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     align-items: center;
     gap: 0.6rem;
     padding: 0.75rem 1.25rem;
-    background: #f9fafb;
-    border: 1.5px solid #e5e7eb;
+    background: var(--dark3);
+    border: 1.5px solid rgba(255,255,255,0.08);
     border-radius: var(--r-md);
     text-decoration: none;
-    color: #374151;
+    color: var(--text);
     font-size: 0.9rem;
     font-weight: 700;
     transition: all var(--t);
   }
 
   .author-link:hover {
-    background: #f3f4f6;
-    border-color: #667eea;
-    color: #667eea;
+    background: rgba(0,240,255,0.07);
+    border-color: rgba(0,240,255,0.35);
+    color: var(--cyan);
     transform: translateY(-2px);
     box-shadow: var(--sh-sm);
   }
 
   .author-link--repo {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
-    color: #065f46;
+    background: rgba(0,255,163,0.07);
+    border-color: rgba(0,255,163,0.2);
+    color: var(--green);
   }
 
   .author-link--repo:hover {
-    border-color: #10b981;
-    color: #059669;
+    border-color: var(--green);
+    color: var(--green);
   }
 
   .author-link svg {
@@ -808,7 +816,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     border-radius: var(--r-sm);
     outline: none;
     background: rgba(255,255,255,0.9);
-    color: #1e1b4b;
+    color: #0a0f24;
     transition: border-color var(--t);
     min-height: 38px;
   }
@@ -823,7 +831,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     border: none;
     border-radius: var(--r-sm);
     background: white;
-    color: #1e1b4b;
+    color: #0a0f24;
     cursor: pointer;
     transition: all var(--t);
     white-space: nowrap;
@@ -854,8 +862,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     padding: 0.9rem 1.25rem;
     border: none;
     border-radius: var(--r-md);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--green) 100%);
+    color: var(--dark);
     font-family: var(--font);
     font-size: 1rem;
     font-weight: 700;
@@ -899,27 +907,27 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   }
 
   .share-link--wa {
-    background: #e8faf0;
-    color: #128c4a;
-    border-color: #b7f0d1;
+    background: rgba(0,255,163,0.08);
+    color: #00cc6a;
+    border-color: rgba(0,255,163,0.2);
   }
 
   .share-link--wa:hover {
-    background: #d1f5e3;
-    border-color: #25D366;
+    background: rgba(0,255,163,0.14);
+    border-color: #00ffa3;
     transform: translateY(-2px);
     box-shadow: var(--sh-sm);
   }
 
   .share-link--sms {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-color: #bfdbfe;
+    background: rgba(0,240,255,0.07);
+    color: var(--cyan);
+    border-color: rgba(0,240,255,0.2);
   }
 
   .share-link--sms:hover {
-    background: #dbeafe;
-    border-color: #3b82f6;
+    background: rgba(0,240,255,0.13);
+    border-color: var(--cyan);
     transform: translateY(-2px);
     box-shadow: var(--sh-sm);
   }
@@ -930,9 +938,9 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     align-items: center;
     gap: 0.6rem;
     padding: 1rem;
-    background: #f9fafb;
+    background: var(--dark3);
     border-radius: var(--r-md);
-    border: 1px solid #f3f4f6;
+    border: 1px solid rgba(255,255,255,0.06);
   }
 
   .share-qr-label {
@@ -940,7 +948,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: #9ca3af;
+    color: var(--muted);
   }
 
   .share-qr-canvas {
@@ -965,7 +973,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   }
 
   .name-modal {
-    background: white;
+    background: var(--dark2);
+    border: 1px solid rgba(0,240,255,0.15);
     border-radius: var(--r-xl);
     padding: 2.5rem 2rem 2rem;
     max-width: 360px;
@@ -988,14 +997,14 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
   .name-modal-title {
     font-size: 1.7rem;
     font-weight: 900;
-    color: #1e1b4b;
+    color: #ffffff;
     letter-spacing: -0.03em;
     text-align: center;
   }
 
   .name-modal-sub {
     font-size: 0.88rem;
-    color: #6b7280;
+    color: var(--muted);
     text-align: center;
     line-height: 1.55;
     font-weight: 500;
@@ -1015,23 +1024,23 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     font-size: 1.05rem;
     font-weight: 600;
     padding: 0.8rem 1rem;
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(255,255,255,0.1);
     border-radius: var(--r-md);
     outline: none;
-    color: #1e1b4b;
-    background: #f9fafb;
+    color: #ffffff;
+    background: var(--dark3);
     transition: border-color var(--t);
     text-align: center;
     width: 100%;
   }
 
-  .name-modal-input:focus { border-color: #667eea; background: white; }
+  .name-modal-input:focus { border-color: var(--cyan); background: var(--dark3); }
 
   .name-modal-btn {
     width: 100%;
     padding: 0.9rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--green) 100%);
+    color: var(--dark);
     border: none;
     border-radius: var(--r-md);
     font-family: var(--font);
@@ -1091,7 +1100,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
   .page-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--green), #34d399);
+    background: linear-gradient(90deg, var(--green), var(--cyan));
     transition: width 0.5s ease;
     width: 0%;
     border-radius: 0 3px 3px 0;
@@ -1212,7 +1221,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 
     // --- Share ---
     const appUrl = window.location.origin;
-    const shareText = 'Practice English irregular verbs the fun way! 🎮';
+    const shareText = 'Practice English the fun way with alunas.co!';
 
     const waLink  = document.getElementById('shareWa') as HTMLAnchorElement;
     const smsLink = document.getElementById('shareSms') as HTMLAnchorElement;
@@ -1224,7 +1233,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     if (typeof navigator.share === 'function') {
       nativeBtn.style.display = 'flex';
       nativeBtn.onclick = () => {
-        navigator.share({ title: 'Irregular Verbs Game', text: shareText, url: appUrl }).catch(() => {});
+        navigator.share({ title: 'alunas.co', text: shareText, url: appUrl }).catch(() => {});
       };
     }
 
@@ -1232,7 +1241,7 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       openModal(shareModal as HTMLElement);
       closeDial();
       const canvas = document.getElementById('shareQrCanvas') as HTMLCanvasElement;
-      QRCode.toCanvas(canvas, appUrl, { width: 180, margin: 1, color: { dark: '#1e1b4b', light: '#f9fafb' } }).catch(() => {});
+      QRCode.toCanvas(canvas, appUrl, { width: 180, margin: 1, color: { dark: '#0a0f24', light: '#e2e8f0' } }).catch(() => {});
     };
 
     if (!_escAdded) {
@@ -1314,14 +1323,33 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
 </script>
 
 <script>
-  const NAME_KEY = 'verbGamePlayerName';
+  const NAME_KEY  = 'verbGamePlayerName';
+  const TOPIC_KEY = 'verbGame_activeTopic';
+  const SKIP_PAGES = ['/admin', '/new-topic'];
+
+  function shouldSkip() {
+    return SKIP_PAGES.some(p => window.location.pathname.startsWith(p));
+  }
+
+  function checkTopicPicker() {
+    if (shouldSkip()) return;
+    // Only show on home page when no active topic is set
+    if (window.location.pathname !== '/') return;
+    const topic = localStorage.getItem(TOPIC_KEY)?.trim();
+    if (!topic) {
+      // Dispatch custom event — index.astro listens and opens its topic modal
+      window.dispatchEvent(new CustomEvent('alunas:openTopicPicker'));
+    }
+  }
 
   function checkName() {
-    // Skip on admin pages — no player name needed there
-    if (window.location.pathname.startsWith('/admin')) return;
+    if (shouldSkip()) return;
 
     const name = localStorage.getItem(NAME_KEY)?.trim();
-    if (name) return;
+    if (name) {
+      checkTopicPicker();
+      return;
+    }
 
     const wrap  = document.getElementById('nameModalWrap') as HTMLElement;
     const form  = document.getElementById('nameModalForm') as HTMLFormElement;
@@ -1330,7 +1358,6 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
     if (!wrap) return;
     wrap.style.display = 'flex';
 
-    // Focus input after animation
     setTimeout(() => input.focus(), 50);
 
     form.onsubmit = (e) => {
@@ -1339,6 +1366,8 @@ const { title, description = 'Learn English irregular verbs the fun way', bodyCl
       if (!val) { input.focus(); return; }
       localStorage.setItem(NAME_KEY, val);
       wrap.style.display = 'none';
+      // After name is saved, check if topic needs to be chosen
+      checkTopicPicker();
     };
   }
 

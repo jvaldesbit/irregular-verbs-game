@@ -12,8 +12,11 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@phosphor-icons/core": "^2.1.1",
     "@supabase/supabase-js": "^2.104.0",
     "astro": "^6.1.7",
+    "aws4fetch": "^1.0.20",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {

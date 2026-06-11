@@ -1,19 +1,20 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Speed Challenge - Irregular Verbs">
+<Layout title="Speed Challenge - alunas">
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1>⚡ Speed Challenge</h1>
+      <h1><Icon name="lightning" weight="bold" size={22} /> Speed Challenge</h1>
       <div class="timer-badge" id="timer">60s</div>
     </header>
 
     <main class="game-area">
       <!-- Instructions -->
       <div class="panel center-panel" id="instructions">
-        <div class="panel-icon">⚡</div>
+        <div class="panel-icon"><Icon name="lightning" weight="bold" size={48} /></div>
         <h2>How to Play</h2>
         <p>Click one word from each column to match verb pairs.<br>Get as many as you can in <strong>60 seconds</strong>!</p>
         <button class="action-btn btn--pink" id="startBtn">Start Game</button>
@@ -39,7 +40,7 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Game Over -->
       <div class="panel center-panel" id="gameOver" style="display:none">
-        <div class="panel-icon">🎉</div>
+        <div class="panel-icon"><Icon name="confetti" weight="bold" size={48} /></div>
         <h2>Time's Up!</h2>
         <p class="big-result">You matched <strong id="finalScore">0</strong> pairs!</p>
         <p class="best-result">Best: <strong id="bestScore">0</strong></p>
@@ -47,7 +48,7 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="scNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="scSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="scSaveBtn">Save</button>
           </div>
           <p class="save-done" id="scSaveDone" style="display:none">✓ Saved!</p>
         </div>
@@ -58,7 +59,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+  import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
@@ -69,15 +71,17 @@ import Layout from '../layouts/Layout.astro';
     ['#06b6d4','#0e7490'],
     ['#8b5cf6','#6d28d9'],
     ['#ef4444','#b91c1c'],
-    ['#10b981','#047857'],
+    ['#00ffa3','#00aa6e'],
     ['#f97316','#c2410c'],
     ['#ec4899','#be185d'],
     ['#84cc16','#4d7c0f'],
     ['#14b8a6','#0f766e'],
   ];
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let gameVerbs: any[] = [];
   let selectedLeft: string|null = null;
   let selectedRight: string|null = null;
@@ -88,33 +92,25 @@ import Layout from '../layouts/Layout.astro';
 
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
     } catch (e) { console.error('loadData error:', e); }
   }
 
-  function getAvailableForms() {
-    const f = settings.forms;
-    const forms = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    return forms.length >= 2 ? forms : ['present', 'past'];
-  }
-
-  const LABEL: Record<string,string> = { present:'Present', past:'Past', participle:'Participle', spanish:'Spanish' };
-
   function startGame() {
-    const forms = getAvailableForms();
-    if (forms.length < 2) { window.location.href = '/settings'; return; }
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) { window.location.href = '/settings'; return; }
 
-    const shuffled = [...forms].sort(() => Math.random() - 0.5);
-    const lf = shuffled[0], rf = shuffled[1];
+    const [lf, rf] = availPairs[Math.floor(Math.random() * availPairs.length)];
+    const LABELS   = buildLabels(fields);
 
-    (document.getElementById('leftLabel') as HTMLElement).textContent = LABEL[lf];
-    (document.getElementById('rightLabel') as HTMLElement).textContent = LABEL[rf];
+    (document.getElementById('leftLabel') as HTMLElement).textContent  = LABELS[lf]  ?? lf;
+    (document.getElementById('rightLabel') as HTMLElement).textContent = LABELS[rf] ?? rf;
 
-    gameVerbs = [...verbs].sort(() => Math.random() - 0.5).slice(0, 10).map((v, i) => ({
+    gameVerbs = [...items].sort(() => Math.random() - 0.5).slice(0, 10).map((v, i) => ({
       id: String(i), left: v[lf], right: v[rf]
     }));
 
@@ -232,7 +228,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function init() {
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.getElementById('startBtn')!.onclick = startGame;
     document.getElementById('restartBtn')!.onclick = startGame;
@@ -253,7 +249,7 @@ import Layout from '../layouts/Layout.astro';
 <style>
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
   }

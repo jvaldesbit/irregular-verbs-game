@@ -1,13 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 ---
 
-<Layout title="Memory Cards - Irregular Verbs">
+<Layout title="Memory Cards - alunas">
   <div class="page">
     <header class="top-bar">
       <div class="top-row">
         <a href="/" class="back-btn">← Back</a>
-        <h1>🃏 Memory Cards</h1>
+        <h1><Icon name="cards" weight="bold" size={22} /> Memory Cards</h1>
         <div class="top-spacer"></div>
       </div>
       <div class="stats">
@@ -19,7 +20,7 @@ import Layout from '../layouts/Layout.astro';
     <main class="game-area">
       <!-- Instructions -->
       <div class="panel center-panel" id="instructions">
-        <div class="panel-icon">🃏</div>
+        <div class="panel-icon"><Icon name="cards" weight="bold" size={48} /></div>
         <h2>Find the Pairs</h2>
         <p>Flip cards to find matching verb form pairs!</p>
         <div class="diff-group">
@@ -37,14 +38,14 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Game Over -->
       <div class="panel center-panel" id="gameOver" style="display:none">
-        <div class="panel-icon">🎉</div>
+        <div class="panel-icon"><Icon name="confetti" weight="bold" size={48} /></div>
         <h2>Congratulations!</h2>
         <p class="big-result">Completed in <strong id="finalMoves">0</strong> moves!</p>
         <div class="save-record">
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="mcNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="mcSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="mcSaveBtn">Save</button>
           </div>
           <p class="save-done" id="mcSaveDone" style="display:none">✓ Saved!</p>
         </div>
@@ -55,42 +56,38 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+  import { loadData as fetchData, getAvailablePairs } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let gameCards: any[] = [];
   let flipped: {card: any, el: HTMLElement}[] = [];
   let matchedPairs = 0, moves = 0, canFlip = true, totalPairs = 6;
 
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
     } catch (e) { console.error('loadData error:', e); }
   }
 
-  function getAvailableForms() {
-    const f = settings.forms;
-    const forms: string[] = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    return forms.length >= 2 ? forms : ['present', 'past'];
-  }
+  function startGame(numPairs: number) {
+    totalPairs = numPairs;
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) { window.location.href = '/settings'; return; }
 
-  function startGame(pairs: number) {
-    totalPairs = pairs;
-    const forms = getAvailableForms();
-    if (forms.length < 2) { window.location.href = '/settings'; return; }
+    const [f1, f2] = availPairs[Math.floor(Math.random() * availPairs.length)];
 
-    const shuffled = [...forms].sort(() => Math.random() - 0.5);
-    const [f1, f2] = shuffled;
-
-    const selected = [...verbs].sort(() => Math.random() - 0.5).slice(0, pairs);
+    const selected = [...items].sort(() => Math.random() - 0.5).slice(0, numPairs);
     gameCards = [];
     selected.forEach((verb, i) => {
       gameCards.push({ id: `${i}-a`, pairId: i, text: verb[f1] });
@@ -187,7 +184,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function init() {
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.querySelectorAll<HTMLButtonElement>('.diff-btn').forEach(btn => {
       btn.onclick = () => startGame(parseInt(btn.dataset.pairs!));
@@ -214,7 +211,7 @@ import Layout from '../layouts/Layout.astro';
 <style>
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #06b6d4 0%, #3b82f6 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
   }
@@ -380,15 +377,15 @@ import Layout from '../layouts/Layout.astro';
   }
 
   :global(.card-front) {
-    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-    color: rgba(255,255,255,0.6);
+    background: linear-gradient(135deg, #0f1730, #1a2545);
+    color: rgba(0,240,255,0.45);
     font-size: clamp(1rem, 3vw, 2rem);
     box-shadow: 0 4px 14px rgba(0,0,0,0.15);
   }
 
   :global(.card-back) {
-    background: white;
-    color: #0e7490;
+    background: var(--dark2, #0f1730);
+    color: #00f0ff;
     font-size: clamp(0.65rem, 2vw, 1rem);
     transform: rotateY(180deg);
     padding: 0.35rem;
@@ -399,8 +396,8 @@ import Layout from '../layouts/Layout.astro';
   }
 
   :global(.mem-card.matched .card-back) {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: linear-gradient(135deg, #00ffa3, #00cc85);
+    color: #0a0f24;
   }
 
   @media (min-width: 600px) {

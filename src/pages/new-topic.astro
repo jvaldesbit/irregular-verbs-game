@@ -1,0 +1,743 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Layout title="Nuevo tema - alunas">
+  <div class="page">
+    <header class="top-bar">
+      <a href="/" class="back-btn">← Back</a>
+      <h1><Icon name="sparkle" weight="bold" size={20} /> Nuevo tema</h1>
+      <div style="width:80px"></div>
+    </header>
+
+    <main class="main">
+
+      <!-- Step 1: Upload -->
+      <div class="step" id="step1">
+        <div class="step-icon">🧠</div>
+        <h2>Sube una imagen o PDF</h2>
+        <p class="step-desc">Toma una foto de tu material de estudio — una tabla, lista de vocabulario, diagrama — y la IA extraerá el contenido automáticamente.</p>
+
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none" />
+          <div class="upload-inner" id="uploadInner">
+            <div class="upload-icon">📷</div>
+            <p class="upload-label">Toca para seleccionar</p>
+            <p class="upload-hint">JPG, PNG, WEBP o PDF · máx 20 MB</p>
+          </div>
+          <div class="preview-wrap" id="previewWrap" style="display:none">
+            <img id="previewImg" class="preview-img" alt="preview" style="display:none" />
+            <div class="preview-pdf" id="previewPdf" style="display:none">
+              <Icon name="file-pdf" weight="bold" size={48} />
+              <span id="previewPdfName"></span>
+            </div>
+            <button class="btn-change" id="btnChange">Cambiar archivo</button>
+          </div>
+        </div>
+
+        <div class="upload-actions" id="uploadActions" style="display:none">
+          <button class="btn-camera" id="btnCamera">
+            <Icon name="camera" weight="bold" size={18} /> Tomar foto
+          </button>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
+          <button class="btn-analyze" id="btnAnalyze">
+            Analizar con IA →
+          </button>
+        </div>
+
+        <div class="error-box" id="step1Error" style="display:none"></div>
+      </div>
+
+      <!-- Step 2: Loading -->
+      <div class="step" id="step2" style="display:none">
+        <div class="loader-wrap">
+          <div class="loader"></div>
+        </div>
+        <h2>Analizando tu material…</h2>
+        <p class="step-desc" id="loadingMsg">Gemini está leyendo tu imagen y extrayendo el contenido de estudio.</p>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div class="step" id="step3" style="display:none">
+        <div class="step-icon" id="reviewIcon">📚</div>
+        <h2>Revisa el tema extraído</h2>
+
+        <div class="meta-form">
+          <div class="meta-field">
+            <label>Nombre (español)</label>
+            <input type="text" id="metaNameEs" class="meta-input" maxlength="60" />
+          </div>
+          <div class="meta-field">
+            <label>Name (English)</label>
+            <input type="text" id="metaNameEn" class="meta-input" maxlength="60" />
+          </div>
+          <div class="meta-row">
+            <div class="meta-field meta-field--icon">
+              <label>Ícono</label>
+              <input type="text" id="metaIcon" class="meta-input meta-input--icon" maxlength="4" />
+            </div>
+            <div class="meta-field meta-field--slug">
+              <label>Slug</label>
+              <input type="text" id="metaSlug" class="meta-input" maxlength="40" />
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-table-wrap">
+          <div class="preview-table-header">
+            <span id="itemCount" class="item-count"></span>
+            <span id="fieldList" class="field-list"></span>
+          </div>
+          <div class="preview-table-scroll">
+            <table class="preview-table" id="previewTable">
+              <thead id="previewThead"></thead>
+              <tbody id="previewTbody"></tbody>
+            </table>
+          </div>
+          <p class="preview-note" id="previewNote"></p>
+        </div>
+
+        <div class="review-actions">
+          <button class="btn-save" id="btnSave">
+            <Icon name="floppy-disk" weight="bold" size={18} /> Guardar localmente
+          </button>
+          <button class="btn-discard" id="btnDiscard">Descartar</button>
+        </div>
+
+        <div class="error-box" id="step3Error" style="display:none"></div>
+      </div>
+
+      <!-- Step 4: Success -->
+      <div class="step" id="step4" style="display:none">
+        <div class="step-icon">🎉</div>
+        <h2 id="savedName">¡Tema guardado!</h2>
+        <p class="step-desc">Tu tema ya está disponible en el selector. Puedes empezar a practicar ahora.</p>
+        <div class="success-actions">
+          <a href="/" class="btn-go-home">Ir al inicio →</a>
+          <button class="btn-new" id="btnNew">Crear otro tema</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { extractTopicFromFile } from '../utils/gemini.ts';
+  import { saveLocalTopic } from '../utils/localTopics.ts';
+  import { setActiveTopic } from '../utils/topics.ts';
+  import type { GeminiTopicResult } from '../utils/gemini.ts';
+
+  let selectedFile: File | null = null;
+  let extractedResult: GeminiTopicResult | null = null;
+
+  // ── Element refs ─────────────────────────────────────────────────────────────
+  const step1       = document.getElementById('step1')       as HTMLElement;
+  const step2       = document.getElementById('step2')       as HTMLElement;
+  const step3       = document.getElementById('step3')       as HTMLElement;
+  const step4       = document.getElementById('step4')       as HTMLElement;
+  const fileInput   = document.getElementById('fileInput')   as HTMLInputElement;
+  const cameraInput = document.getElementById('cameraInput') as HTMLInputElement;
+  const uploadArea  = document.getElementById('uploadArea')  as HTMLElement;
+  const uploadInner = document.getElementById('uploadInner') as HTMLElement;
+  const previewWrap = document.getElementById('previewWrap') as HTMLElement;
+  const previewImg  = document.getElementById('previewImg')  as HTMLImageElement;
+  const previewPdf  = document.getElementById('previewPdf')  as HTMLElement;
+  const uploadActions = document.getElementById('uploadActions') as HTMLElement;
+
+  // ── File selection ────────────────────────────────────────────────────────────
+  function showFilePreview(file: File) {
+    selectedFile = file;
+    uploadInner.style.display  = 'none';
+    previewWrap.style.display  = 'flex';
+    uploadActions.style.display = 'flex';
+
+    if (file.type.startsWith('image/')) {
+      previewImg.src = URL.createObjectURL(file);
+      previewImg.style.display  = 'block';
+      previewPdf.style.display  = 'none';
+    } else {
+      previewImg.style.display  = 'none';
+      previewPdf.style.display  = 'flex';
+      (document.getElementById('previewPdfName') as HTMLElement).textContent = file.name;
+    }
+
+    clearError('step1Error');
+  }
+
+  uploadArea.onclick = (e) => {
+    if ((e.target as HTMLElement).closest('#btnChange, #btnCamera, #btnAnalyze')) return;
+    fileInput.click();
+  };
+
+  fileInput.onchange   = () => { if (fileInput.files?.[0]) showFilePreview(fileInput.files[0]); };
+  cameraInput.onchange = () => { if (cameraInput.files?.[0]) showFilePreview(cameraInput.files[0]); };
+
+  document.getElementById('btnChange')!.onclick = (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  };
+
+  document.getElementById('btnCamera')!.onclick = (e) => {
+    e.stopPropagation();
+    cameraInput.click();
+  };
+
+  // ── Analyze ───────────────────────────────────────────────────────────────────
+  document.getElementById('btnAnalyze')!.onclick = async () => {
+    if (!selectedFile) return;
+
+    if (selectedFile.size > 20 * 1024 * 1024) {
+      showError('step1Error', 'El archivo es demasiado grande. Máximo 20 MB.');
+      return;
+    }
+
+    goToStep(2);
+    setLoadingMsg('Gemini está leyendo tu imagen y extrayendo el contenido de estudio.');
+
+    try {
+      const result = await extractTopicFromFile(selectedFile);
+
+      if (!result.valid) {
+        goToStep(1);
+        showError('step1Error', `No se pudo extraer contenido: ${result.reason}`);
+        return;
+      }
+
+      extractedResult = result;
+      renderReview(result);
+      goToStep(3);
+    } catch (err: any) {
+      goToStep(1);
+      showError('step1Error', err.message ?? 'Error al analizar. Intenta con otra imagen.');
+    }
+  };
+
+  // ── Review rendering ──────────────────────────────────────────────────────────
+  function renderReview(result: GeminiTopicResult) {
+    (document.getElementById('metaNameEs')  as HTMLInputElement).value = result.meta.name_es;
+    (document.getElementById('metaNameEn')  as HTMLInputElement).value = result.meta.name_en;
+    (document.getElementById('metaIcon')    as HTMLInputElement).value = result.meta.icon;
+    (document.getElementById('metaSlug')    as HTMLInputElement).value = result.meta.slug;
+    (document.getElementById('reviewIcon')  as HTMLElement).textContent = result.meta.icon;
+
+    const { fields, items } = result.payload;
+    const PREVIEW_ROWS = 5;
+
+    (document.getElementById('itemCount') as HTMLElement).textContent =
+      `${items.length} elemento${items.length !== 1 ? 's' : ''}`;
+
+    (document.getElementById('fieldList') as HTMLElement).textContent =
+      fields.map(f => f.label_es).join(' · ');
+
+    const thead = document.getElementById('previewThead') as HTMLElement;
+    thead.innerHTML = `<tr>${fields.map(f => `<th>${f.label_es}</th>`).join('')}</tr>`;
+
+    const tbody = document.getElementById('previewTbody') as HTMLElement;
+    tbody.innerHTML = items.slice(0, PREVIEW_ROWS).map(item =>
+      `<tr>${fields.map(f => `<td>${item[f.key] ?? ''}</td>`).join('')}</tr>`
+    ).join('');
+
+    const note = document.getElementById('previewNote') as HTMLElement;
+    note.textContent = items.length > PREVIEW_ROWS
+      ? `Mostrando 5 de ${items.length} filas.`
+      : '';
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────────────────
+  document.getElementById('btnSave')!.onclick = () => {
+    if (!extractedResult) return;
+
+    const name_es = (document.getElementById('metaNameEs') as HTMLInputElement).value.trim();
+    const name_en = (document.getElementById('metaNameEn') as HTMLInputElement).value.trim();
+    const icon    = (document.getElementById('metaIcon')   as HTMLInputElement).value.trim();
+    const slug    = (document.getElementById('metaSlug')   as HTMLInputElement).value.trim()
+                      .toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+
+    if (!name_es || !name_en || !slug) {
+      showError('step3Error', 'Nombre y slug son obligatorios.');
+      return;
+    }
+
+    const saved = saveLocalTopic({ slug, name_en, name_es, icon: icon || '📚' }, extractedResult.payload);
+    setActiveTopic(saved);
+
+    (document.getElementById('savedName') as HTMLElement).textContent =
+      `¡"${name_es}" guardado!`;
+
+    goToStep(4);
+  };
+
+  document.getElementById('btnDiscard')!.onclick = () => {
+    extractedResult = null;
+    goToStep(1);
+  };
+
+  document.getElementById('btnNew')!.onclick = () => {
+    extractedResult = null;
+    selectedFile    = null;
+    fileInput.value = '';
+    uploadInner.style.display   = 'flex';
+    previewWrap.style.display   = 'none';
+    uploadActions.style.display = 'none';
+    clearError('step1Error');
+    goToStep(1);
+  };
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  function goToStep(n: 1 | 2 | 3 | 4) {
+    [step1, step2, step3, step4].forEach((el, i) => {
+      el.style.display = i + 1 === n ? 'flex' : 'none';
+    });
+  }
+
+  function setLoadingMsg(msg: string) {
+    (document.getElementById('loadingMsg') as HTMLElement).textContent = msg;
+  }
+
+  function showError(id: string, msg: string) {
+    const el = document.getElementById(id) as HTMLElement;
+    el.textContent    = msg;
+    el.style.display  = 'block';
+  }
+
+  function clearError(id: string) {
+    const el = document.getElementById(id) as HTMLElement;
+    el.textContent   = '';
+    el.style.display = 'none';
+  }
+</script>
+
+<style>
+  .page {
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(env(safe-area-inset-top) + 0.85rem) 1.25rem 0.85rem;
+    flex-shrink: 0;
+    gap: 0.75rem;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    flex: 1;
+    text-align: center;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1.5rem 1.25rem 5rem;
+    overflow-y: auto;
+  }
+
+  /* ── Steps ── */
+  .step {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .step-icon {
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .step h2 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+
+  .step-desc {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.65);
+    text-align: center;
+    line-height: 1.6;
+    max-width: 380px;
+  }
+
+  /* ── Upload area ── */
+  .upload-area {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 2px dashed rgba(0,240,255,0.3);
+    border-radius: var(--r-xl);
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color var(--t), background var(--t);
+    overflow: hidden;
+  }
+
+  .upload-area:hover { border-color: rgba(0,240,255,0.6); background: rgba(0,240,255,0.04); }
+
+  .upload-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+  }
+
+  .upload-icon { font-size: 2.5rem; }
+
+  .upload-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .upload-hint {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+  }
+
+  .preview-wrap {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .preview-img {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: var(--r-md);
+    object-fit: contain;
+  }
+
+  .preview-pdf {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(0,240,255,0.8);
+    padding: 1rem;
+  }
+
+  .preview-pdf span {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+    word-break: break-all;
+    text-align: center;
+  }
+
+  .btn-change {
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.4rem 0.9rem;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-change:hover { background: rgba(255,255,255,0.2); color: white; }
+
+  .upload-actions {
+    width: 100%;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-camera {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.85rem 1.25rem;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    flex: 1;
+    min-height: 52px;
+    justify-content: center;
+  }
+
+  .btn-camera:hover { background: rgba(255,255,255,0.2); }
+
+  .btn-analyze {
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, #00f0ff, #00ffa3);
+    color: #0a0f24;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: opacity var(--t), transform var(--t);
+    flex: 2;
+    min-height: 52px;
+  }
+
+  .btn-analyze:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* ── Loader ── */
+  .loader-wrap {
+    padding: 1rem 0 0.5rem;
+  }
+
+  .loader {
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(0,240,255,0.2);
+    border-top-color: #00f0ff;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Meta form ── */
+  .meta-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+  }
+
+  .meta-field--icon { flex: 0 0 80px; }
+  .meta-field--slug { flex: 1; }
+
+  .meta-field label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .meta-input {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: var(--r-md);
+    color: white;
+    outline: none;
+    transition: border-color var(--t);
+    width: 100%;
+  }
+
+  .meta-input:focus { border-color: #00f0ff; background: rgba(0,240,255,0.05); }
+  .meta-input--icon { text-align: center; font-size: 1.4rem; padding: 0.5rem; }
+
+  /* ── Preview table ── */
+  .preview-table-wrap {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  .preview-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .item-count {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #00f0ff;
+  }
+
+  .field-list {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+  }
+
+  .preview-table-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .preview-table th {
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.45);
+    background: rgba(255,255,255,0.04);
+    white-space: nowrap;
+  }
+
+  .preview-table td {
+    padding: 0.6rem 0.9rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    white-space: nowrap;
+  }
+
+  .preview-note {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    padding: 0.5rem 1rem;
+    text-align: right;
+  }
+
+  /* ── Review actions ── */
+  .review-actions {
+    width: 100%;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-save {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 0.9rem 1.5rem;
+    background: linear-gradient(135deg, #00f0ff, #00ffa3);
+    color: #0a0f24;
+    border: none;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: opacity var(--t), transform var(--t);
+    min-height: 54px;
+  }
+
+  .btn-save:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-discard {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.9rem 1.25rem;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 54px;
+  }
+
+  .btn-discard:hover { background: rgba(255,255,255,0.18); color: white; }
+
+  /* ── Success ── */
+  .success-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-go-home {
+    padding: 0.9rem 1.75rem;
+    background: linear-gradient(135deg, #00f0ff, #00ffa3);
+    color: #0a0f24;
+    border-radius: var(--r-md);
+    font-weight: 800;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: opacity var(--t);
+  }
+
+  .btn-go-home:hover { opacity: 0.9; }
+
+  .btn-new {
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.9rem 1.5rem;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all var(--t);
+  }
+
+  .btn-new:hover { background: rgba(255,255,255,0.18); }
+
+  /* ── Error box ── */
+  .error-box {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: var(--r-md);
+    color: #fca5a5;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 600px) {
+    .main { padding: 2rem 1.5rem 5rem; }
+    .btn-camera { flex: 0 0 auto; }
+  }
+</style>

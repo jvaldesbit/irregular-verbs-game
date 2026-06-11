@@ -1,19 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { ph } from '../utils/ph';
+
+const qmIcons = {
+  heartFill:  ph('heart',       'fill', 22),
+  heartEmpty: ph('heart',       'regular', 22),
+  heartBreak: ph('heart-break', 'bold', 52),
+  flag:       ph('flag',        'bold', 52),
+  timer:      ph('timer',       'bold', 52),
+};
 ---
 
-<Layout title="Quick Match - Irregular Verbs" bodyClass="qm-body">
+<Layout title="Quick Match - alunas" bodyClass="qm-body">
   <div class="page">
     <header class="top-bar">
       <div class="top-row">
         <a href="/" class="back-btn">← Back</a>
-        <h1>🎯 Quick Match</h1>
+        <h1><Icon name="target" weight="bold" size={22} /> Quick Match</h1>
         <div class="top-spacer"></div>
       </div>
       <div class="stats" id="statsRow">
         <div class="stat-badge" id="scoreBadge">Score <strong id="score">0</strong></div>
-        <div class="stat-badge" id="streakBadge">🔥 <strong id="streak">0</strong></div>
-        <div class="stat-badge" id="timerBadge" style="display:none">⏱️ <strong id="timerDisplay">5:00</strong></div>
+        <div class="stat-badge" id="streakBadge"><Icon name="fire" weight="bold" size={16} /> <strong id="streak">0</strong></div>
+        <div class="stat-badge" id="timerBadge" style="display:none"><Icon name="timer" weight="bold" size={16} /> <strong id="timerDisplay">5:00</strong></div>
         <div class="stat-badge best-badge" id="bestBadge">Best <strong id="best">0</strong></div>
       </div>
     </header>
@@ -29,17 +39,17 @@ import Layout from '../layouts/Layout.astro';
       <p class="mode-title">Choose a mode</p>
       <div class="mode-cards">
         <button class="mode-card" data-mode="endless">
-          <span class="mode-icon">♾️</span>
+          <span class="mode-icon"><Icon name="infinity" weight="bold" size={32} /></span>
           <strong>Endless</strong>
           <span>No lives · No timer<br>Score forever</span>
         </button>
         <button class="mode-card" data-mode="survival">
-          <span class="mode-icon">❤️</span>
+          <span class="mode-icon"><Icon name="heart" weight="bold" size={32} /></span>
           <strong>Survival</strong>
           <span>3 lives · +1 every<br>10 streak</span>
         </button>
         <button class="mode-card" data-mode="rush">
-          <span class="mode-icon">⏱️</span>
+          <span class="mode-icon"><Icon name="timer" weight="bold" size={32} /></span>
           <strong>Rush</strong>
           <span>Timer per question<br>5 min → 10 sec</span>
         </button>
@@ -66,7 +76,7 @@ import Layout from '../layouts/Layout.astro';
     <!-- Game Over panel -->
     <div class="gameover-overlay" id="gameOverPanel" style="display:none">
       <div class="gameover-card">
-        <div class="go-icon" id="goIcon">💔</div>
+        <div class="go-icon" id="goIcon"></div>
         <h2 id="goTitle">Game Over</h2>
         <p class="go-stat">Score: <strong id="goScore">0</strong></p>
         <p class="go-stat">Best streak: <strong id="goStreak">0</strong></p>
@@ -75,14 +85,14 @@ import Layout from '../layouts/Layout.astro';
           <p class="save-label">Save your record</p>
           <div class="save-row">
             <input type="text" id="goNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="goSaveBtn">💾 Save</button>
+            <button class="save-record-btn" id="goSaveBtn">Save</button>
           </div>
           <p class="save-done" id="goSaveDone" style="display:none">✓ Saved!</p>
         </div>
         <div class="go-btns">
           <button class="go-btn go-btn--play" id="goPlayAgain">Play Again</button>
           <button class="go-btn go-btn--change" id="goChangeMode">Change Mode</button>
-          <a href="/scores" class="go-btn go-btn--scores">🏆 Records</a>
+          <a href="/scores" class="go-btn go-btn--scores"><Icon name="trophy" weight="bold" size={18} /> Records</a>
         </div>
       </div>
     </div>
@@ -93,8 +103,9 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </Layout>
 
-<script>
-  import { loadData as fetchData } from '../utils/loadData.ts';
+<script define:vars={{ qmIcons }}>
+  import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
+  import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
@@ -106,9 +117,10 @@ import Layout from '../layouts/Layout.astro';
 
   type GameMode = 'endless' | 'survival' | 'rush';
 
-  let verbs: any[] = [];
-  let settings: any = { forms: { present: true, past: true, participle: true, spanish: true } };
-  let currentVerb: any = null;
+  let items:    Record<string, string>[] = [];
+  let fields:   TopicField[] = [];
+  let pairs:    [string, string][] | null = null;
+  let settings: GameSettings = { forms: {} };
   let currentQuestion: any = null;
   let gameMode: GameMode = 'survival';
 
@@ -132,13 +144,13 @@ import Layout from '../layouts/Layout.astro';
   function renderLives() {
     const el = document.getElementById('livesHearts') as HTMLElement;
     el.innerHTML =
-      Array.from({ length: Math.max(lives, 0) }, () => '<span class="heart">❤️</span>').join('') +
-      Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => '<span class="heart lost">🖤</span>').join('');
+      Array.from({ length: Math.max(lives, 0) }, () => `<span class="heart">${qmIcons.heartFill}</span>`).join('') +
+      Array.from({ length: Math.max(MAX_LIVES - lives, 0) }, () => `<span class="heart lost">${qmIcons.heartEmpty}</span>`).join('');
   }
 
   function showBonus() {
     const el = document.getElementById('bonusMsg') as HTMLElement;
-    el.textContent = '+1 life 🎉';
+    el.textContent = '+1 life!';
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2000);
   }
@@ -200,7 +212,7 @@ import Layout from '../layouts/Layout.astro';
     allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
 
     const msg = document.getElementById('resultMessage') as HTMLElement;
-    msg.textContent = `⏰ Time's up! — ${currentQuestion.correct}`;
+    msg.textContent = `Time's up! — ${currentQuestion.correct}`;
     msg.className = 'result-msg is-wrong';
 
     playWrong();
@@ -236,43 +248,34 @@ import Layout from '../layouts/Layout.astro';
   // ── Data loading ──
   async function loadData() {
     try {
-      ({ verbs, settings } = await fetchData());
+      const result = await fetchData();
+      items    = result.items;
+      fields   = result.fields;
+      pairs    = result.pairs;
+      settings = result.settings;
       generateQuestion();
     } catch (e) { console.error('loadData error:', e); }
   }
 
-  function getAvailableForms() {
-    const f = settings.forms;
-    const forms = [];
-    if (f.present) forms.push('present');
-    if (f.past) forms.push('past');
-    if (f.participle) forms.push('participle');
-    if (f.spanish) forms.push('spanish');
-    return forms.length >= 2 ? forms : ['present', 'past', 'participle'];
-  }
-
-  const LABELS: Record<string, string> = {
-    present: 'PRESENT', past: 'PAST', participle: 'PARTICIPLE', spanish: 'SPANISH'
-  };
-
   function generateQuestion() {
-    const forms = getAvailableForms();
-    if (forms.length < 2) { window.location.href = '/settings'; return; }
+    const availPairs = getAvailablePairs(fields, pairs, settings);
+    if (availPairs.length < 1) { window.location.href = '/settings'; return; }
 
-    currentVerb = verbs[Math.floor(Math.random() * verbs.length)];
-    const showForm = forms[Math.floor(Math.random() * forms.length)];
-    const askForms = forms.filter(f => f !== showForm);
-    const askForm = askForms[Math.floor(Math.random() * askForms.length)];
+    const item = items[Math.floor(Math.random() * items.length)];
+    const [showKey, askKey] = availPairs[Math.floor(Math.random() * availPairs.length)];
+    const LABELS = buildLabels(fields);
 
-    currentQuestion = { show: showForm, ask: askForm, correct: currentVerb[askForm] };
+    currentQuestion = { show: showKey, ask: askKey, item, correct: item[askKey] };
 
     (document.getElementById('questionLabel') as HTMLElement).textContent =
-      `Find the ${LABELS[askForm]} form of:`;
-    (document.getElementById('questionWord') as HTMLElement).textContent = currentVerb[showForm];
+      `Find the ${LABELS[askKey]} form of:`;
+    (document.getElementById('questionWord') as HTMLElement).textContent = item[showKey];
 
     const hintEl = document.getElementById('hint') as HTMLElement;
-    hintEl.textContent = (showForm !== 'spanish' && askForm !== 'spanish' && settings.forms.spanish)
-      ? `(${currentVerb.spanish})` : '';
+    const hintField = fields.find(f =>
+      settings.forms[f.key] !== false && f.key !== showKey && f.key !== askKey
+    );
+    hintEl.textContent = hintField && item[hintField.key] ? `(${item[hintField.key]})` : '';
 
     generateOptions();
     const msg = document.getElementById('resultMessage') as HTMLElement;
@@ -283,10 +286,14 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function generateOptions() {
-    const options = [currentQuestion.correct];
-    while (options.length < 4) {
-      const rand = verbs[Math.floor(Math.random() * verbs.length)][currentQuestion.ask];
-      if (!options.includes(rand)) options.push(rand);
+    const askKey  = currentQuestion.ask;
+    const correct = currentQuestion.correct;
+    const pool    = items.map(i => i[askKey]).filter(v => v && v !== correct);
+    const options = [correct];
+    while (options.length < 4 && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const pick = pool.splice(idx, 1)[0];
+      if (!options.includes(pick)) options.push(pick);
     }
     options.sort(() => Math.random() - 0.5);
 
@@ -320,11 +327,11 @@ import Layout from '../layouts/Layout.astro';
         lives++;
         renderLives();
         showBonus();
-        msg.textContent = `✓ Correct! +1 life bonus 🎉`;
+        msg.textContent = `✓ Correct! +1 life bonus`;
       } else {
         msg.textContent = gameMode === 'rush'
-          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())} ⏱️`
-          : `✓ Correct! 🔥 ${streak}`;
+          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())}`
+          : `✓ Correct! Streak: ${streak}`;
       }
       msg.className = 'result-msg is-correct';
 
@@ -371,9 +378,9 @@ import Layout from '../layouts/Layout.astro';
     (document.getElementById('goStreak') as HTMLElement).textContent = String(maxStreak);
     (document.getElementById('goTotal') as HTMLElement).textContent = String(totalQuestions);
 
-    const icons: Record<GameMode, string> = { endless: '🏁', survival: '💔', rush: '⏰' };
+    const icons: Record<GameMode, string> = { endless: qmIcons.flag, survival: qmIcons.heartBreak, rush: qmIcons.timer };
     const titles: Record<GameMode, string> = { endless: 'Session ended', survival: 'Game Over', rush: 'Time\'s up!' };
-    (document.getElementById('goIcon') as HTMLElement).textContent = icons[gameMode];
+    (document.getElementById('goIcon') as HTMLElement).innerHTML = icons[gameMode];
     (document.getElementById('goTitle') as HTMLElement).textContent = titles[gameMode];
 
     (document.getElementById('goNameInput') as HTMLInputElement).value = getPlayerName();
@@ -405,7 +412,7 @@ import Layout from '../layouts/Layout.astro';
     applyModeUI();
     if (gameMode !== 'endless') renderLives();
 
-    if (verbs.length) { generateQuestion(); } else { loadData(); }
+    if (items.length) { generateQuestion(); } else { loadData(); }
   }
 
   function showModeSelect() {
@@ -418,7 +425,7 @@ import Layout from '../layouts/Layout.astro';
   function init() {
     stopRushTimer();
     showModeSelect();
-    if (!verbs.length) loadData();
+    if (!items.length) loadData();
 
     document.querySelectorAll<HTMLButtonElement>('.mode-card').forEach(btn => {
       btn.onclick = () => startGame(btn.dataset.mode as GameMode);
@@ -460,8 +467,8 @@ import Layout from '../layouts/Layout.astro';
     align-items: center;
   }
 
-  :global(.heart) { font-size: 1.5rem; transition: transform 0.2s; }
-  :global(.heart.lost) { filter: grayscale(1); opacity: 0.4; }
+  :global(.heart) { display: flex; align-items: center; color: #ef4444; transition: transform 0.2s; }
+  :global(.heart.lost) { color: #9ca3af; opacity: 0.5; }
 
   :global(.lives-hearts.shake) {
     animation: shakeH 0.45s ease;
@@ -480,8 +487,8 @@ import Layout from '../layouts/Layout.astro';
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%) scale(0.6);
-    background: #10b981;
-    color: white;
+    background: var(--green);
+    color: var(--dark);
     font-size: 0.85rem;
     font-weight: 800;
     padding: 0.3rem 0.8rem;
@@ -548,7 +555,7 @@ import Layout from '../layouts/Layout.astro';
 
   .mode-card:active { transform: scale(0.98); }
 
-  .mode-icon { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+  .mode-icon { display: flex; align-items: center; flex-shrink: 0; }
 
   .mode-card strong {
     display: block;
@@ -576,7 +583,7 @@ import Layout from '../layouts/Layout.astro';
   .timer-bar {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #10b981, #34d399);
+    background: linear-gradient(90deg, #00ffa3, #00f0ff);
     border-radius: 3px;
     transition: width 0.9s linear, background 0.4s ease;
   }
@@ -609,7 +616,7 @@ import Layout from '../layouts/Layout.astro';
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(30, 10, 60, 0.82);
+    background: rgba(10, 15, 36, 0.88);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
@@ -619,7 +626,8 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .gameover-card {
-    background: white;
+    background: var(--dark2);
+    border: 1px solid rgba(0,240,255,0.15);
     border-radius: var(--r-xl);
     padding: 2.5rem 2rem 2rem;
     max-width: 360px;
@@ -632,27 +640,27 @@ import Layout from '../layouts/Layout.astro';
     box-shadow: var(--sh-lg);
   }
 
-  .go-icon { font-size: 3.5rem; line-height: 1; }
+  .go-icon { display: flex; align-items: center; justify-content: center; color: #ef4444; }
 
   .gameover-card h2 {
     font-size: 1.8rem;
     font-weight: 900;
-    color: #1e1b4b;
+    color: #ffffff;
     letter-spacing: -0.03em;
   }
 
   .go-stat {
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--muted);
     font-weight: 500;
   }
 
-  .go-stat strong { color: #1e1b4b; font-weight: 800; font-size: 1.1rem; }
+  .go-stat strong { color: #ffffff; font-weight: 800; font-size: 1.1rem; }
 
   .save-record {
     width: 100%;
-    background: #f9fafb;
-    border: 1.5px solid #e5e7eb;
+    background: var(--dark3);
+    border: 1.5px solid rgba(255,255,255,0.08);
     border-radius: var(--r-md);
     padding: 0.85rem 1rem;
     display: flex;
@@ -665,7 +673,7 @@ import Layout from '../layouts/Layout.astro';
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #9ca3af;
+    color: var(--muted);
   }
 
   .save-row { display: flex; gap: 0.5rem; }
@@ -676,15 +684,16 @@ import Layout from '../layouts/Layout.astro';
     font-size: 0.95rem;
     font-weight: 600;
     padding: 0.55rem 0.75rem;
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid rgba(255,255,255,0.1);
     border-radius: var(--r-sm);
     outline: none;
-    color: #1e1b4b;
+    color: #ffffff;
+    background: var(--dark);
     transition: border-color var(--t);
     min-height: 40px;
   }
 
-  .save-name-input:focus { border-color: #667eea; }
+  .save-name-input:focus { border-color: var(--cyan); }
 
   .save-record-btn {
     font-family: var(--font);
@@ -693,18 +702,18 @@ import Layout from '../layouts/Layout.astro';
     padding: 0.55rem 1rem;
     border: none;
     border-radius: var(--r-sm);
-    background: #667eea;
-    color: white;
+    background: var(--cyan);
+    color: var(--dark);
     cursor: pointer;
     transition: all var(--t);
     white-space: nowrap;
     min-height: 40px;
   }
 
-  .save-record-btn:hover { background: #4f46e5; }
+  .save-record-btn:hover { background: #00d4e8; }
   .save-record-btn:disabled { opacity: 0.5; cursor: default; }
 
-  .save-done { font-size: 0.85rem; font-weight: 700; color: #10b981; }
+  .save-done { font-size: 0.85rem; font-weight: 700; color: var(--green); }
 
   .go-btns {
     display: flex;
@@ -734,13 +743,13 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .go-btn:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
-  .go-btn--play   { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-  .go-btn--change { background: #f3f4f6; color: #374151; }
+  .go-btn--play   { background: linear-gradient(135deg, var(--cyan), var(--green)); color: var(--dark); }
+  .go-btn--change { background: rgba(255,255,255,0.1); color: var(--text); }
   .go-btn--scores { background: linear-gradient(135deg, #f59e0b, #b45309); color: white; }
 
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
   }
@@ -853,13 +862,13 @@ import Layout from '../layouts/Layout.astro';
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    border: 3px solid rgba(255,255,255,0.35);
+    border: 2px solid rgba(0,240,255,0.2);
     border-radius: var(--r-lg);
-    background: rgba(255,255,255,0.92);
-    color: #1e1b4b;
+    background: rgba(15,23,48,0.85);
+    color: #ffffff;
     cursor: pointer;
     transition: all var(--t);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -873,7 +882,7 @@ import Layout from '../layouts/Layout.astro';
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+    background: linear-gradient(135deg, rgba(0,240,255,0.07), rgba(0,255,163,0.07));
     opacity: 0;
     transition: opacity var(--t);
   }
@@ -881,9 +890,9 @@ import Layout from '../layouts/Layout.astro';
   :global(.opt-btn:hover:not(:disabled)::before) { opacity: 1; }
 
   :global(.opt-btn:hover:not(:disabled)) {
-    border-color: rgba(255,255,255,0.8);
+    border-color: rgba(0,240,255,0.55);
     transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,240,255,0.2);
   }
 
   :global(.opt-btn:active:not(:disabled)) {
@@ -893,10 +902,10 @@ import Layout from '../layouts/Layout.astro';
   :global(.opt-btn:disabled) { cursor: not-allowed; }
 
   :global(.opt-btn.correct) {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    color: white !important;
+    background: linear-gradient(135deg, #00ffa3, #00cc85) !important;
+    color: #0a0f24 !important;
     border-color: transparent !important;
-    box-shadow: 0 8px 28px rgba(16,185,129,0.45) !important;
+    box-shadow: 0 8px 28px rgba(0,255,163,0.45) !important;
     transform: scale(1.02) !important;
   }
 
@@ -924,7 +933,7 @@ import Layout from '../layouts/Layout.astro';
     flex-shrink: 0;
   }
 
-  .result-msg.is-correct { color: #6ee7b7; }
+  .result-msg.is-correct { color: #00ffa3; }
   .result-msg.is-wrong   { color: #fca5a5; }
 
   /* ── Finish button ── */
