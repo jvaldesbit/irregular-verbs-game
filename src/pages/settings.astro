@@ -7,7 +7,7 @@ import Icon from '../components/Icon.astro';
   <div class="page">
     <header class="top-bar">
       <a href="/" class="back-btn">← Back</a>
-      <h1><Icon name="gear-six" weight="bold" size={22} /> Settings</h1>
+      <h1><Icon name="gear-six" weight="bold" size={22} /> <span data-i18n="nav.settings">Settings</span></h1>
       <div style="width: 80px"></div>
     </header>
 
@@ -15,64 +15,74 @@ import Icon from '../components/Icon.astro';
       <div class="settings-layout">
         <!-- Main card -->
         <div class="card">
-          <h2><Icon name="user" weight="bold" size={20} /> Player Name</h2>
-          <p class="desc">Your name appears on the records board.</p>
+          <h2><Icon name="user" weight="bold" size={20} /> <span data-i18n="set.player_name">Player Name</span></h2>
+          <p class="desc" data-i18n="set.player_name_desc">Your name appears on the records board.</p>
           <div class="name-row">
-            <input type="text" id="playerName" class="name-input" placeholder="Enter your name..." maxlength="24" autocomplete="off">
-            <button type="button" class="save-name-btn" id="saveNameBtn">Save</button>
+            <input type="text" id="playerName" class="name-input" data-i18n-placeholder="set.name_placeholder" placeholder="Enter your name..." maxlength="24" autocomplete="off">
+            <button type="button" class="save-name-btn" id="saveNameBtn" data-i18n="set.save">Save</button>
           </div>
-          <div class="msg success" id="msgNameOk" style="display:none">✓ Name saved!</div>
+          <div class="msg success" id="msgNameOk" style="display:none" data-i18n="set.name_saved">✓ Name saved!</div>
 
           <div class="section-divider"></div>
 
-          <h2 id="fieldsTitle">Campos a Practicar</h2>
-          <p class="desc" id="fieldsDesc">Selecciona al menos 2 campos para que los juegos funcionen.</p>
+          <h2 id="fieldsTitle"><Icon name="sliders" weight="bold" size={20} /> <span data-i18n="set.fields_title">Fields to Practice</span></h2>
+          <p class="desc" id="fieldsDesc" data-i18n="set.fields_desc">Select at least 2 fields for games to work.</p>
 
           <form id="settingsForm" class="form">
             <div id="fieldsContainer">
-              <p class="fields-loading">Cargando campos…</p>
+              <p class="fields-loading" data-i18n="set.fields_loading">Loading fields…</p>
             </div>
 
             <div class="btn-row">
-              <button type="submit" class="save-btn">Guardar</button>
-              <button type="button" class="reset-btn" id="resetBtn">Reset</button>
+              <button type="submit" class="save-btn" data-i18n="set.save_btn">Save</button>
+              <button type="button" class="reset-btn" id="resetBtn" data-i18n="set.reset_btn">Reset</button>
             </div>
           </form>
 
-          <div class="msg success" id="msgOk" style="display:none">✓ Configuración guardada!</div>
-          <div class="msg error" id="msgErr" style="display:none">Selecciona al menos 2 campos.</div>
+          <div class="msg success" id="msgOk" style="display:none" data-i18n="set.fields_saved">✓ Settings saved!</div>
+          <div class="msg error" id="msgErr" style="display:none" data-i18n="set.fields_error">Select at least 2 fields.</div>
 
           <div class="section-divider"></div>
 
-          <h2 class="section-title"><Icon name="speaker-high" weight="bold" size={20} /> Sound Effects</h2>
-          <p class="desc">Play sounds on correct and incorrect answers.</p>
+          <h2 class="section-title"><Icon name="speaker-high" weight="bold" size={20} /> <span data-i18n="set.sound">Sound Effects</span></h2>
+          <p class="desc" data-i18n="set.sound_desc">Play sounds on correct and incorrect answers.</p>
           <label class="check-row" id="rowSound">
             <input type="checkbox" id="chkSound">
             <span class="check-box"></span>
             <span class="check-body">
-              <strong>Enable Sounds</strong>
-              <small>Correct ding &amp; wrong buzz</small>
+              <strong data-i18n="set.sound_enable">Enable Sounds</strong>
+              <small data-i18n="set.sound_small">Correct ding &amp; wrong buzz</small>
             </span>
           </label>
+
+          <div class="section-divider"></div>
+
+          <!-- Language selector -->
+          <h2 class="section-title"><Icon name="globe" weight="bold" size={20} /> <span data-i18n="set.language">Language</span></h2>
+          <p class="desc" data-i18n="set.language_desc">Choose the interface language.</p>
+          <div class="lang-btns">
+            <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+            <button class="lang-btn" data-lang="es">🇪🇸 Español</button>
+          </div>
         </div>
 
         <!-- Tips card -->
         <div class="card tips-card">
-          <h3><Icon name="lightbulb" weight="bold" size={18} /> Tips</h3>
+          <h3><Icon name="lightbulb" weight="bold" size={18} /> <span data-i18n="set.tips">Tips</span></h3>
           <ul>
-            <li><strong>Beginner</strong> — Present + Past</li>
-            <li><strong>Intermediate</strong> — Add Participle</li>
-            <li><strong>Advanced</strong> — All four forms</li>
-            <li><strong>Spanish speakers</strong> — Enable Spanish for faster learning!</li>
+            <li data-i18n="set.tips_beginner"><strong>Beginner</strong> — Present + Past</li>
+            <li data-i18n="set.tips_intermediate"><strong>Intermediate</strong> — Add Participle</li>
+            <li data-i18n="set.tips_advanced"><strong>Advanced</strong> — All four forms</li>
+            <li data-i18n="set.tips_spanish"><strong>Spanish speakers</strong> — Enable Spanish for faster learning!</li>
           </ul>
 
-          <h3 style="margin-top:1.5rem"><Icon name="game-controller" weight="bold" size={18} /> Game Modes</h3>
+          <h3 style="margin-top:1.5rem"><Icon name="game-controller" weight="bold" size={18} /> <span data-i18n="set.game_modes">Game Modes</span></h3>
           <ul>
-            <li><strong>Quick Match</strong> — 4-option multiple choice</li>
-            <li><strong>Speed Challenge</strong> — Match pairs in 60s</li>
-            <li><strong>Type Master</strong> — Type the answer</li>
-            <li><strong>Memory Cards</strong> — Classic card flip</li>
-            <li><strong>Practice</strong> — Browse or self-quiz</li>
+            <li><strong data-i18n="home.quick_match">Quick Match</strong> — 4-option multiple choice</li>
+            <li><strong data-i18n="home.speed_challenge">Speed Challenge</strong> — Match pairs in 60s</li>
+            <li><strong data-i18n="home.type_master">Type Master</strong> — Type the answer</li>
+            <li><strong data-i18n="home.memory_cards">Memory Cards</strong> — Classic card flip</li>
+            <li><strong data-i18n="home.practice">Practice</strong> — Browse or self-quiz</li>
           </ul>
         </div>
       </div>
@@ -83,6 +93,7 @@ import Icon from '../components/Icon.astro';
 <script>
   import { loadData, saveSettings, loadSettings } from '../utils/loadData.ts';
   import type { TopicField, GameSettings } from '../utils/loadData.ts';
+  import { t, getLang, setLang } from '../i18n/index.ts';
 
   let currentFields: TopicField[] = [];
   let settings: GameSettings = { forms: {} };
@@ -109,7 +120,7 @@ import Icon from '../components/Icon.astro';
         <span class="check-box"></span>
         <span class="check-body">
           <strong>${f.label_es}</strong>
-          <small>${f.label_en}${f.enabled ? '' : ' — desactivado por defecto'}</small>
+          <small>${f.label_en}${f.enabled ? '' : ' — ' + t('set.fields_disabled')}</small>
         </span>
       </label>
     `).join('');
@@ -169,8 +180,26 @@ import Icon from '../components/Icon.astro';
     localStorage.setItem('verbGameSounds', chkSound.checked ? 'true' : 'false');
   });
 
+  // ── Language selector ────────────────────────────────────────────────────────
+  function updateLangBtns() {
+    const lang = getLang();
+    document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setLang(btn.dataset.lang as 'en' | 'es');
+      updateLangBtns();
+    });
+  });
+
+  updateLangBtns();
+
   // ── Bootstrap ────────────────────────────────────────────────────────────────
   async function init() {
+    updateLangBtns();
     try {
       const { fields } = await loadData();
       currentFields = fields;
@@ -179,7 +208,7 @@ import Icon from '../components/Icon.astro';
     } catch (e) {
       console.error('Settings load error:', e);
       document.getElementById('fieldsContainer')!.innerHTML =
-        '<p style="color:rgba(255,255,255,0.6);font-size:0.88rem">Error al cargar campos.</p>';
+        `<p style="color:rgba(255,255,255,0.6);font-size:0.88rem">${t('set.fields_error')}</p>`;
     }
   }
 
@@ -389,6 +418,36 @@ import Icon from '../components/Icon.astro';
 
   .msg.success { background: #d1fae5; color: #065f46; }
   .msg.error   { background: #fee2e2; color: #991b1b; }
+
+  /* Language buttons */
+  .lang-btns {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .lang-btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: all var(--t);
+    min-height: 52px;
+  }
+
+  .lang-btn:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); color: white; }
+
+  .lang-btn.active {
+    background: linear-gradient(135deg, #00f0ff22, #00ffa322);
+    border-color: #00f0ff;
+    color: white;
+    box-shadow: 0 0 12px rgba(0,240,255,0.25);
+  }
 
   /* Tips card */
   .tips-card { background: rgba(255,255,255,0.1); }

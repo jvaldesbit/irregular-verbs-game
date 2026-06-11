@@ -31,14 +31,20 @@ const gameIcons = {
 </Layout>
 
 <script define:vars={{ gameIcons }}>
-  import { getScores, getPlayerName } from '../utils/scores.ts';
+  (window as any).__gameIcons = gameIcons;
+</script>
 
+<script>
+  import { getScores, getPlayerName } from '../utils/scores.ts';
+  import { t } from '../i18n/index.ts';
+
+  const _icons = (window as any).__gameIcons ?? {};
   const GAMES = [
-    { id: 'quick-match',     icon: gameIcons['quick-match'],     name: 'Quick Match',      unit: 'pts',     higherBetter: true  },
-    { id: 'speed-challenge', icon: gameIcons['speed-challenge'], name: 'Speed Challenge',  unit: 'pairs',   higherBetter: true  },
-    { id: 'type-master',     icon: gameIcons['type-master'],     name: 'Type Master',      unit: 'correct', higherBetter: true  },
-    { id: 'memory-cards',    icon: gameIcons['memory-cards'],    name: 'Memory Cards',     unit: 'moves',   higherBetter: false },
-    { id: 'practice',        icon: gameIcons['practice'],        name: 'Practice',         unit: '%',       higherBetter: true  },
+    { id: 'quick-match',     icon: _icons['quick-match'],     nameKey: 'home.quick_match',     higherBetter: true  },
+    { id: 'speed-challenge', icon: _icons['speed-challenge'], nameKey: 'home.speed_challenge', higherBetter: true  },
+    { id: 'type-master',     icon: _icons['type-master'],     nameKey: 'home.type_master',     higherBetter: true  },
+    { id: 'memory-cards',    icon: _icons['memory-cards'],    nameKey: 'home.memory_cards',    higherBetter: false },
+    { id: 'practice',        icon: _icons['practice'],        nameKey: 'home.practice',        higherBetter: true  },
   ] as const;
 
   function formatDate(iso: string) {
@@ -51,7 +57,12 @@ const gameIcons = {
     const noName = document.getElementById('noName')!;
     const grid   = document.getElementById('recordsGrid')!;
 
-    if (!name) { noName.style.display = 'block'; grid.innerHTML = ''; return; }
+    if (!name) {
+      noName.querySelector('p')!.innerHTML = `${t('rec.no_name')} <a href="/settings">Settings</a>`;
+      noName.style.display = 'block';
+      grid.innerHTML = '';
+      return;
+    }
     noName.style.display = 'none';
 
     grid.innerHTML = GAMES.map(g => {
@@ -59,23 +70,23 @@ const gameIcons = {
       const rows = entries.length
         ? entries.map((e, i) => `
             <tr class="${i === 0 ? 'top-row' : ''}">
-              <td class="rank ${i === 0 ? 'rank--gold' : i === 1 ? 'rank--silver' : i === 2 ? 'rank--bronze' : ''}">${i < 3 ? `#${i+1}` : `#${i+1}`}</td>
+              <td class="rank ${i === 0 ? 'rank--gold' : i === 1 ? 'rank--silver' : i === 2 ? 'rank--bronze' : ''}">#${i+1}</td>
               <td class="entry-name">${e.name}</td>
               <td class="entry-score">${e.label}</td>
               <td class="entry-date">${formatDate(e.date)}</td>
             </tr>`).join('')
-        : `<tr><td colspan="4" class="empty">No records yet — go play!</td></tr>`;
+        : `<tr><td colspan="4" class="empty">${t('rec.no_scores')}</td></tr>`;
 
       return `
         <div class="game-card">
           <div class="game-header">
             <span class="game-icon">${g.icon}</span>
-            <span class="game-name">${g.name}</span>
+            <span class="game-name">${t(g.nameKey)}</span>
           </div>
           <table class="score-table">
             <thead>
               <tr>
-                <th>#</th><th>Name</th><th>Score</th><th>Date</th>
+                <th>#</th><th>${t('rec.col_name')}</th><th>${t('rec.col_score')}</th><th>${t('rec.col_date')}</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>

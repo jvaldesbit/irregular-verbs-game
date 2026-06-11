@@ -139,7 +139,7 @@ const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' }
   <!-- Info Modal -->
   <div class="fab-modal" id="infoModal" role="dialog" aria-modal="true" aria-label="How to play">
     <div class="modal-header">
-      <h2><Icon name="game-controller" weight="bold" size={20} /> How to play</h2>
+      <h2><Icon name="game-controller" weight="bold" size={20} /> <span data-i18n="modal.how_to_play">How to play</span></h2>
       <button class="modal-close" id="infoClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
@@ -187,7 +187,7 @@ const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' }
   <!-- Share Modal -->
   <div class="fab-modal" id="shareModal" role="dialog" aria-modal="true" aria-label="Share">
     <div class="modal-header">
-      <h2><Icon name="export" weight="bold" size={20} /> Share</h2>
+      <h2><Icon name="export" weight="bold" size={20} /> <span data-i18n="modal.share">Share</span></h2>
       <button class="modal-close" id="shareClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body share-body">
@@ -225,7 +225,7 @@ const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' }
   <!-- Author Modal -->
   <div class="fab-modal" id="authorModal" role="dialog" aria-modal="true" aria-label="About the author">
     <div class="modal-header">
-      <h2><Icon name="user" weight="bold" size={20} /> About</h2>
+      <h2><Icon name="user" weight="bold" size={20} /> <span data-i18n="modal.about">About</span></h2>
       <button class="modal-close" id="authorClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body author-body">
@@ -271,20 +271,21 @@ const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' }
   <div class="name-modal-wrap" id="nameModalWrap" style="display:none" aria-modal="true" role="dialog" aria-label="Enter your name">
     <div class="name-modal">
       <div class="name-modal-icon"><Icon name="game-controller" weight="bold" size={48} /></div>
-      <h2 class="name-modal-title">Welcome!</h2>
-      <p class="name-modal-sub">Enter your name to track your scores and compete on leaderboards.</p>
+      <h2 class="name-modal-title" data-i18n="modal.welcome">Welcome!</h2>
+      <p class="name-modal-sub" data-i18n="modal.welcome_sub">Enter your name to track your scores and compete on leaderboards.</p>
       <form class="name-modal-form" id="nameModalForm" autocomplete="off">
         <input
           type="text"
           id="nameModalInput"
           class="name-modal-input"
+          data-i18n-placeholder="modal.name_placeholder"
           placeholder="Your name…"
           maxlength="32"
           required
           autocapitalize="words"
           autocomplete="off"
         />
-        <button type="submit" class="name-modal-btn" id="nameModalBtn">Let's play →</button>
+        <button type="submit" class="name-modal-btn" id="nameModalBtn" data-i18n="modal.lets_play">Let's play →</button>
       </form>
     </div>
   </div>
@@ -1268,6 +1269,12 @@ const { title, description = 'alunas.co — Learn the fun way', bodyClass = '' }
   initFabs();
   setYear();
   document.addEventListener('astro:page-load', () => { initFabs(); setYear(); });
+</script>
+
+<script>
+  import { applyI18n } from '../i18n/index.ts';
+  applyI18n();
+  document.addEventListener('astro:page-load', applyI18n);
 </script>
 
 <script>

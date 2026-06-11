@@ -21,10 +21,10 @@ const qmIcons = {
         <div class="top-spacer"></div>
       </div>
       <div class="stats" id="statsRow">
-        <div class="stat-badge" id="scoreBadge">Score <strong id="score">0</strong></div>
+        <div class="stat-badge" id="scoreBadge"><span data-i18n="qm.score">Score</span> <strong id="score">0</strong></div>
         <div class="stat-badge" id="streakBadge"><Icon name="fire" weight="bold" size={16} /> <strong id="streak">0</strong></div>
         <div class="stat-badge" id="timerBadge" style="display:none"><Icon name="timer" weight="bold" size={16} /> <strong id="timerDisplay">5:00</strong></div>
-        <div class="stat-badge best-badge" id="bestBadge">Best <strong id="best">0</strong></div>
+        <div class="stat-badge best-badge" id="bestBadge"><span data-i18n="qm.best">Best</span> <strong id="best">0</strong></div>
       </div>
     </header>
 
@@ -36,22 +36,22 @@ const qmIcons = {
 
     <!-- Mode selector overlay -->
     <div class="mode-select" id="modeSelect">
-      <p class="mode-title">Choose a mode</p>
+      <p class="mode-title" data-i18n="qm.choose_mode">Choose a mode</p>
       <div class="mode-cards">
         <button class="mode-card" data-mode="endless">
           <span class="mode-icon"><Icon name="infinity" weight="bold" size={32} /></span>
-          <strong>Endless</strong>
-          <span>No lives · No timer<br>Score forever</span>
+          <strong data-i18n="qm.endless">Endless</strong>
+          <span data-i18n="qm.endless_desc">No lives · No timer&#10;Score forever</span>
         </button>
         <button class="mode-card" data-mode="survival">
           <span class="mode-icon"><Icon name="heart" weight="bold" size={32} /></span>
-          <strong>Survival</strong>
-          <span>3 lives · +1 every<br>10 streak</span>
+          <strong data-i18n="qm.survival">Survival</strong>
+          <span data-i18n="qm.survival_desc">3 lives · +1 every&#10;10 streak</span>
         </button>
         <button class="mode-card" data-mode="rush">
           <span class="mode-icon"><Icon name="timer" weight="bold" size={32} /></span>
-          <strong>Rush</strong>
-          <span>Timer per question<br>5 min → 10 sec</span>
+          <strong data-i18n="qm.rush">Rush</strong>
+          <span data-i18n="qm.rush_desc">Timer per question&#10;5 min → 10 sec</span>
         </button>
       </div>
     </div>
@@ -70,7 +70,7 @@ const qmIcons = {
       <div class="options-grid" id="optionsGrid"></div>
 
       <div class="result-msg" id="resultMessage"></div>
-      <button class="finish-btn" id="finishBtn">⏹ Finish</button>
+      <button class="finish-btn" id="finishBtn" data-i18n="qm.finish">⏹ Finish</button>
     </main>
 
     <!-- Game Over panel -->
@@ -78,20 +78,20 @@ const qmIcons = {
       <div class="gameover-card">
         <div class="go-icon" id="goIcon"></div>
         <h2 id="goTitle">Game Over</h2>
-        <p class="go-stat">Score: <strong id="goScore">0</strong></p>
-        <p class="go-stat">Best streak: <strong id="goStreak">0</strong></p>
-        <p class="go-stat">Questions: <strong id="goTotal">0</strong></p>
+        <p class="go-stat"><span data-i18n="qm.score_label">Score:</span> <strong id="goScore">0</strong></p>
+        <p class="go-stat"><span data-i18n="qm.best_streak">Best streak:</span> <strong id="goStreak">0</strong></p>
+        <p class="go-stat"><span data-i18n="qm.questions">Questions:</span> <strong id="goTotal">0</strong></p>
         <div class="save-record" id="goSaveWidget">
-          <p class="save-label">Save your record</p>
+          <p class="save-label" data-i18n="shared.save_record">Save your record</p>
           <div class="save-row">
-            <input type="text" id="goNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="goSaveBtn">Save</button>
+            <input type="text" id="goNameInput" class="save-name-input" data-i18n-placeholder="shared.name_placeholder" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="goSaveBtn" data-i18n="shared.save">Save</button>
           </div>
-          <p class="save-done" id="goSaveDone" style="display:none">✓ Saved!</p>
+          <p class="save-done" id="goSaveDone" style="display:none" data-i18n="shared.saved">✓ Saved!</p>
         </div>
         <div class="go-btns">
-          <button class="go-btn go-btn--play" id="goPlayAgain">Play Again</button>
-          <button class="go-btn go-btn--change" id="goChangeMode">Change Mode</button>
+          <button class="go-btn go-btn--play" id="goPlayAgain" data-i18n="qm.play_again">Play Again</button>
+          <button class="go-btn go-btn--change" id="goChangeMode" data-i18n="qm.change_mode">Change Mode</button>
           <a href="/scores" class="go-btn go-btn--scores"><Icon name="trophy" weight="bold" size={18} /> Records</a>
         </div>
       </div>
@@ -113,6 +113,7 @@ const qmIcons = {
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
   import { saveUniverseScore, getUniverseSession } from '../utils/supabase.ts';
+  import { t } from '../i18n/index.ts';
   const qmIcons = (window as any).__qmIcons ?? {};
 
   // Rush: time per question in seconds per level (every 10 correct = next level)
@@ -217,7 +218,7 @@ const qmIcons = {
     allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
 
     const msg = document.getElementById('resultMessage') as HTMLElement;
-    msg.textContent = `Time's up! — ${currentQuestion.correct}`;
+    msg.textContent = `${t('qm.timeout')} ${currentQuestion.correct}`;
     msg.className = 'result-msg is-wrong';
 
     playWrong();
@@ -332,11 +333,11 @@ const qmIcons = {
         lives++;
         renderLives();
         showBonus();
-        msg.textContent = `✓ Correct! +1 life bonus`;
+        msg.textContent = t('qm.correct_life');
       } else {
         msg.textContent = gameMode === 'rush'
-          ? `✓ Correct! Next: ${formatTime(getRushTimeForLevel())}`
-          : `✓ Correct! Streak: ${streak}`;
+          ? `${t('qm.correct_next')} ${formatTime(getRushTimeForLevel())}`
+          : `${t('qm.correct_streak')} ${streak}`;
       }
       msg.className = 'result-msg is-correct';
 
@@ -353,7 +354,7 @@ const qmIcons = {
       btn.classList.add('wrong');
       allBtns.forEach(b => { if (b.textContent === currentQuestion.correct) b.classList.add('correct'); });
 
-      msg.textContent = `✗ Wrong — ${currentQuestion.correct}`;
+      msg.textContent = `${t('qm.wrong')} ${currentQuestion.correct}`;
       msg.className = 'result-msg is-wrong';
       (document.getElementById('streak') as HTMLElement).textContent = '0';
       streak = 0;
@@ -384,7 +385,7 @@ const qmIcons = {
     (document.getElementById('goTotal') as HTMLElement).textContent = String(totalQuestions);
 
     const icons: Record<GameMode, string> = { endless: qmIcons.flag, survival: qmIcons.heartBreak, rush: qmIcons.timer };
-    const titles: Record<GameMode, string> = { endless: 'Session ended', survival: 'Game Over', rush: 'Time\'s up!' };
+    const titles: Record<GameMode, string> = { endless: t('qm.session_ended'), survival: t('qm.game_over'), rush: t('qm.times_up') };
     (document.getElementById('goIcon') as HTMLElement).innerHTML = icons[gameMode];
     (document.getElementById('goTitle') as HTMLElement).textContent = titles[gameMode];
 

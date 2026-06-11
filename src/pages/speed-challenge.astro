@@ -15,15 +15,15 @@ import Icon from '../components/Icon.astro';
       <!-- Instructions -->
       <div class="panel center-panel" id="instructions">
         <div class="panel-icon"><Icon name="lightning" weight="bold" size={48} /></div>
-        <h2>How to Play</h2>
-        <p>Click one word from each column to match verb pairs.<br>Get as many as you can in <strong>60 seconds</strong>!</p>
-        <button class="action-btn btn--pink" id="startBtn">Start Game</button>
+        <h2 data-i18n="sc.how_to_play">How to Play</h2>
+        <p data-i18n-html="sc.instructions">Click one word from each column to match verb pairs.<br>Get as many as you can in <strong>60 seconds</strong>!</p>
+        <button class="action-btn btn--pink" id="startBtn" data-i18n="sc.start_game">Start Game</button>
       </div>
 
       <!-- Game -->
       <div class="game-play" id="gameArea" style="display:none">
         <div class="score-strip">
-          Matches: <strong id="matches">0</strong>
+          <span data-i18n="sc.matches">Matches:</span> <strong id="matches">0</strong>
         </div>
         <div class="columns-wrap">
           <div class="verb-col">
@@ -41,18 +41,18 @@ import Icon from '../components/Icon.astro';
       <!-- Game Over -->
       <div class="panel center-panel" id="gameOver" style="display:none">
         <div class="panel-icon"><Icon name="confetti" weight="bold" size={48} /></div>
-        <h2>Time's Up!</h2>
-        <p class="big-result">You matched <strong id="finalScore">0</strong> pairs!</p>
-        <p class="best-result">Best: <strong id="bestScore">0</strong></p>
+        <h2 data-i18n="sc.times_up">Time's Up!</h2>
+        <p class="big-result"><span data-i18n="sc.you_matched">You matched</span> <strong id="finalScore">0</strong> <span data-i18n="sc.pairs_label">pairs!</span></p>
+        <p class="best-result"><span data-i18n="sc.best">Best:</span> <strong id="bestScore">0</strong></p>
         <div class="save-record">
-          <p class="save-label">Save your record</p>
+          <p class="save-label" data-i18n="shared.save_record">Save your record</p>
           <div class="save-row">
-            <input type="text" id="scNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="scSaveBtn">Save</button>
+            <input type="text" id="scNameInput" class="save-name-input" data-i18n-placeholder="shared.name_placeholder" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="scSaveBtn" data-i18n="shared.save">Save</button>
           </div>
-          <p class="save-done" id="scSaveDone" style="display:none">✓ Saved!</p>
+          <p class="save-done" id="scSaveDone" style="display:none" data-i18n="shared.saved">✓ Saved!</p>
         </div>
-        <button class="action-btn btn--pink" id="restartBtn">Play Again</button>
+        <button class="action-btn btn--pink" id="restartBtn" data-i18n="sc.play_again">Play Again</button>
       </div>
     </main>
   </div>
