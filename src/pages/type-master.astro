@@ -29,19 +29,20 @@ import Icon from '../components/Icon.astro';
           type="text"
           id="answerInput"
           class="answer-input"
+          data-i18n-placeholder="tm.answer_placeholder"
           placeholder="Type your answer..."
           autocomplete="off"
           autocapitalize="off"
           autocorrect="off"
           spellcheck="false"
         />
-        <button type="submit" class="submit-btn">Check ✓</button>
+        <button type="submit" class="submit-btn" data-i18n="tm.check">Check ✓</button>
       </form>
 
       <div class="feedback" id="feedback"></div>
 
       <div class="skip-row">
-        <button class="skip-btn" id="skipBtn">Skip →</button>
+        <button class="skip-btn" id="skipBtn" data-i18n="tm.skip">Skip →</button>
       </div>
     </main>
 
@@ -49,18 +50,18 @@ import Icon from '../components/Icon.astro';
     <div class="session-overlay" id="sessionOverlay" style="display:none">
       <div class="session-card">
         <div class="session-icon"><Icon name="keyboard" weight="bold" size={52} /></div>
-        <h2>Session Over</h2>
-        <p class="session-score">Score: <strong id="sessionScore">0</strong> correct</p>
-        <p class="session-acc">Accuracy: <strong id="sessionAcc">0%</strong></p>
+        <h2 data-i18n="tm.session_over">Session Over</h2>
+        <p class="session-score"><span data-i18n="tm.score_label">Score:</span> <strong id="sessionScore">0</strong> <span data-i18n="tm.correct_label">correct</span></p>
+        <p class="session-acc"><span data-i18n="tm.accuracy">Accuracy:</span> <strong id="sessionAcc">0%</strong></p>
         <div class="save-record">
-          <p class="save-label">Save your record</p>
+          <p class="save-label" data-i18n="shared.save_record">Save your record</p>
           <div class="save-row">
-            <input type="text" id="tmNameInput" class="save-name-input" placeholder="Your name…" maxlength="24" autocomplete="off">
-            <button class="save-record-btn" id="tmSaveBtn">Save</button>
+            <input type="text" id="tmNameInput" class="save-name-input" data-i18n-placeholder="shared.name_placeholder" placeholder="Your name…" maxlength="24" autocomplete="off">
+            <button class="save-record-btn" id="tmSaveBtn" data-i18n="shared.save">Save</button>
           </div>
-          <p class="save-done" id="tmSaveDone" style="display:none">✓ Saved!</p>
+          <p class="save-done" id="tmSaveDone" style="display:none" data-i18n="shared.saved">✓ Saved!</p>
         </div>
-        <button class="continue-btn" id="continueBtn">Continue Playing</button>
+        <button class="continue-btn" id="continueBtn" data-i18n="tm.continue">Continue Playing</button>
       </div>
     </div>
 

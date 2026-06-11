@@ -17,8 +17,8 @@ import Icon from '../../components/Icon.astro';
     <!-- Access denied (no session or wrong code) -->
     <div class="no-access" id="noAccess" style="display:none">
       <div class="no-access-icon"><Icon name="lock" weight="bold" size={52} /></div>
-      <p>You need to join this universe first.</p>
-      <a href="/universe" class="btn-join-now">Join →</a>
+      <p data-i18n="uni.no_access">You need to join this universe first.</p>
+      <a href="/universe" class="btn-join-now" data-i18n="uni.join_btn">Join →</a>
     </div>
 
     <!-- Content (shown when session is valid) -->
@@ -26,19 +26,19 @@ import Icon from '../../components/Icon.astro';
 
       <!-- Game selector -->
       <section class="section">
-        <h2 class="section-title">Play and earn points</h2>
+        <h2 class="section-title" data-i18n="uni.play_section">Play and earn points</h2>
         <div class="game-grid">
           <a href="/quick-match" class="game-card game-card--purple">
-            <span><Icon name="target" weight="bold" size={24} /></span><strong>Quick Match</strong>
+            <span><Icon name="target" weight="bold" size={24} /></span><strong data-i18n="home.quick_match">Quick Match</strong>
           </a>
           <a href="/speed-challenge" class="game-card game-card--pink">
-            <span><Icon name="lightning" weight="bold" size={24} /></span><strong>Speed Challenge</strong>
+            <span><Icon name="lightning" weight="bold" size={24} /></span><strong data-i18n="home.speed_challenge">Speed Challenge</strong>
           </a>
           <a href="/type-master" class="game-card game-card--indigo">
-            <span><Icon name="keyboard" weight="bold" size={24} /></span><strong>Type Master</strong>
+            <span><Icon name="keyboard" weight="bold" size={24} /></span><strong data-i18n="home.type_master">Type Master</strong>
           </a>
           <a href="/memory-cards" class="game-card game-card--cyan">
-            <span><Icon name="cards" weight="bold" size={24} /></span><strong>Memory Cards</strong>
+            <span><Icon name="cards" weight="bold" size={24} /></span><strong data-i18n="home.memory_cards">Memory Cards</strong>
           </a>
         </div>
       </section>
@@ -46,7 +46,7 @@ import Icon from '../../components/Icon.astro';
       <!-- Filter tabs -->
       <section class="section">
         <div class="tabs" id="tabs">
-          <button class="tab active" data-game="">All</button>
+          <button class="tab active" data-game="" data-i18n="uni.tab_all">All</button>
           <button class="tab" data-game="quick-match">Quick</button>
           <button class="tab" data-game="rush">Rush</button>
           <button class="tab" data-game="speed-challenge">Speed</button>
@@ -56,7 +56,7 @@ import Icon from '../../components/Icon.astro';
 
         <!-- Leaderboard -->
         <div class="leaderboard" id="leaderboard">
-          <div class="loading-row">Loading…</div>
+          <div class="loading-row" data-i18n="uni.loading_scores">Loading…</div>
         </div>
       </section>
     </div>
@@ -65,6 +65,7 @@ import Icon from '../../components/Icon.astro';
 
 <script>
   import { getUniverseSession, getLeaderboard, supabase } from '../../utils/supabase.ts';
+  import { t } from '../../i18n/index.ts';
 
   const GAME_LABELS: Record<string, string> = {
     'quick-match': 'Quick',
@@ -89,7 +90,7 @@ import Icon from '../../components/Icon.astro';
   function renderLeaderboard(scores: any[], playerEmail: string) {
     const el = document.getElementById('leaderboard') as HTMLElement;
     if (!scores.length) {
-      el.innerHTML = '<div class="empty-row">No scores yet — be the first!</div>';
+      el.innerHTML = `<div class="empty-row">${t('uni.no_scores')}</div>`;
       return;
     }
 

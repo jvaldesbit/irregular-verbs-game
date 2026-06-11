@@ -15,48 +15,48 @@ import Icon from '../../components/Icon.astro';
       <!-- Active session banner -->
       <div class="session-banner" id="sessionBanner" style="display:none">
         <div class="session-info">
-          <span class="session-label">Active universe</span>
+          <span class="session-label" data-i18n="uni.active">Active universe</span>
           <strong id="sessionUniverseName"></strong>
           <span id="sessionPlayerName" class="session-player"></span>
         </div>
         <div class="session-actions">
-          <a id="sessionGoBtn" href="#" class="btn-go">View universe →</a>
-          <button id="sessionLeaveBtn" class="btn-leave">Leave</button>
+          <a id="sessionGoBtn" href="#" class="btn-go" data-i18n="uni.view">View universe →</a>
+          <button id="sessionLeaveBtn" class="btn-leave" data-i18n="uni.leave">Leave</button>
         </div>
       </div>
 
       <!-- Join form -->
       <div class="card" id="joinCard">
         <div class="card-icon"><Icon name="globe" weight="bold" size={40} /></div>
-        <h2>Join a universe</h2>
-        <p class="card-desc">Enter the code your teacher gave you to compete with your class.</p>
+        <h2 data-i18n="uni.join_title">Join a universe</h2>
+        <p class="card-desc" data-i18n="uni.join_desc">Enter the code your teacher gave you to compete with your class.</p>
 
         <form class="form" id="joinForm" autocomplete="off">
           <div class="field">
-            <label for="fieldName">Your name</label>
+            <label for="fieldName" data-i18n="uni.your_name">Your name</label>
             <input type="text" id="fieldName" placeholder="E.g. Maria Garcia" maxlength="32" required autocomplete="off" autocapitalize="words" />
           </div>
           <div class="field">
-            <label for="fieldEmail">Your email</label>
+            <label for="fieldEmail" data-i18n="uni.your_email">Your email</label>
             <input type="email" id="fieldEmail" placeholder="you@example.com" required autocomplete="off" autocapitalize="off" />
           </div>
           <div class="field">
-            <label for="fieldCode">Universe</label>
+            <label for="fieldCode" data-i18n="uni.universe_label">Universe</label>
             <select id="fieldCode" required class="code-select">
-              <option value="">Loading universes…</option>
+              <option value="" data-i18n="uni.loading">Loading universes…</option>
             </select>
           </div>
 
           <div class="error-msg" id="errorMsg" style="display:none"></div>
 
           <button type="submit" class="btn-join" id="joinBtn">
-            <span id="joinBtnText">Join →</span>
-            <span id="joinBtnLoading" style="display:none">Looking up…</span>
+            <span id="joinBtnText" data-i18n="uni.join_btn">Join →</span>
+            <span id="joinBtnLoading" style="display:none" data-i18n="uni.looking_up">Looking up…</span>
           </button>
         </form>
       </div>
 
-      <div class="divider">Are you a teacher?</div>
+      <div class="divider" data-i18n="uni.teacher">Are you a teacher?</div>
       <div class="teacher-hint">
         <a href="/admin" class="teacher-link teacher-link--admin"><Icon name="lock-key" weight="bold" size={16} /> Sign in to dashboard</a>
         <a href="https://jcvb.com.co/#contact" target="_blank" rel="noopener" class="teacher-link teacher-link--contact"><Icon name="envelope" weight="bold" size={16} /> Contact Julián</a>
@@ -67,13 +67,14 @@ import Icon from '../../components/Icon.astro';
 
 <script>
   import { joinUniverse, getUniverseSession, clearUniverseSession, getAllUniverses } from '../../utils/supabase.ts';
+  import { t } from '../../i18n/index.ts';
 
   async function loadUniverseOptions() {
     const sel = document.getElementById('fieldCode') as HTMLSelectElement;
     const universes = await getAllUniverses();
     sel.innerHTML = universes.length
-      ? '<option value="">Select a universe…</option>'
-      : '<option value="">No universes available</option>';
+      ? `<option value="">${t('uni.select')}</option>`
+      : `<option value="">${t('uni.no_universes')}</option>`;
     universes.forEach(u => {
       const opt = document.createElement('option');
       opt.value = u.code;
@@ -130,7 +131,7 @@ import Icon from '../../components/Icon.astro';
       if (result.ok && result.universe) {
         window.location.href = `/universe/room?code=${result.universe.code}`;
       } else {
-        errorMsg.textContent = result.error ?? 'Could not join universe.';
+        errorMsg.textContent = result.error ?? t('uni.join_error');
         errorMsg.style.display = 'block';
       }
     };

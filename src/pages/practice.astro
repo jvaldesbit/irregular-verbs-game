@@ -9,8 +9,8 @@ import Icon from '../components/Icon.astro';
       <a href="/" class="back-btn">← Back</a>
       <h1><Icon name="infinity" weight="bold" size={22} /> Practice</h1>
       <div class="mode-toggle">
-        <button class="mode-btn active" id="btnBrowse">Browse</button>
-        <button class="mode-btn" id="btnQuiz">Quiz</button>
+        <button class="mode-btn active" id="btnBrowse" data-i18n="pr.browse">Browse</button>
+        <button class="mode-btn" id="btnQuiz" data-i18n="pr.quiz">Quiz</button>
       </div>
     </header>
 
@@ -22,9 +22,9 @@ import Icon from '../components/Icon.astro';
         </div>
 
         <div class="nav-bar">
-          <button class="nav-btn" id="prevBtn">← Prev</button>
+          <button class="nav-btn" id="prevBtn" data-i18n="pr.prev">← Prev</button>
           <span class="counter" id="counter">1 / 67</span>
-          <button class="nav-btn" id="nextBtn">Next →</button>
+          <button class="nav-btn" id="nextBtn" data-i18n="pr.next">Next →</button>
         </div>
       </div>
 
@@ -36,28 +36,28 @@ import Icon from '../components/Icon.astro';
         </div>
 
         <div class="reveal-area" id="revealArea">
-          <button class="reveal-btn" id="revealBtn">Show Answer</button>
+          <button class="reveal-btn" id="revealBtn" data-i18n="pr.show_answer">Show Answer</button>
         </div>
 
         <div class="answer-area" id="answerArea" style="display:none">
           <p class="correct-answer" id="correctAnswer">—</p>
           <div class="feedback-btns">
-            <button class="fb-btn fb-wrong" id="wrongBtn">✗ Wrong</button>
-            <button class="fb-btn fb-correct" id="correctBtn">✓ Correct</button>
+            <button class="fb-btn fb-wrong" id="wrongBtn" data-i18n="pr.wrong">✗ Wrong</button>
+            <button class="fb-btn fb-correct" id="correctBtn" data-i18n="pr.correct">✓ Correct</button>
           </div>
         </div>
 
         <div class="quiz-stats">
           <div class="qs-item">
-            <span class="qs-label">Right</span>
+            <span class="qs-label" data-i18n="pr.right">Right</span>
             <strong class="qs-val green" id="rightCount">0</strong>
           </div>
           <div class="qs-item">
-            <span class="qs-label">Wrong</span>
+            <span class="qs-label" data-i18n="pr.wrong_label">Wrong</span>
             <strong class="qs-val red" id="wrongCount">0</strong>
           </div>
           <div class="qs-item">
-            <span class="qs-label">Acc</span>
+            <span class="qs-label" data-i18n="pr.acc">Acc</span>
             <strong class="qs-val" id="quizAcc">—</strong>
           </div>
         </div>
@@ -76,6 +76,7 @@ import Icon from '../components/Icon.astro';
 
 <script>
   import { loadData as fetchData, getAvailablePairs, buildLabels } from '../utils/loadData.ts';
+  import { t } from '../i18n/index.ts';
   import type { TopicField, GameSettings } from '../utils/loadData.ts';
   import { playCorrect, playWrong } from '../utils/sounds.ts';
   import { saveScore, getPlayerName } from '../utils/scores.ts';
@@ -132,7 +133,7 @@ import Icon from '../components/Icon.astro';
     const [show, ask] = availPairs[Math.floor(Math.random() * availPairs.length)];
     const LABELS = buildLabels(fields);
 
-    (document.getElementById('quizLabel') as HTMLElement).textContent = `What is the ${LABELS[ask]} form?`;
+    (document.getElementById('quizLabel') as HTMLElement).textContent = `${t('pr.what_is')} ${LABELS[ask]} ${t('pr.form')}`;
     (document.getElementById('quizWord') as HTMLElement).textContent = v[show] ?? '—';
     (document.getElementById('correctAnswer') as HTMLElement).textContent = v[ask] ?? '—';
 

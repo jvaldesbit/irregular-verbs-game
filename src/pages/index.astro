@@ -8,51 +8,51 @@ import Icon from '../components/Icon.astro';
     <header class="page-header">
       <div class="logo" id="topicIcon">🎮</div>
       <h1 id="topicTitle">Irregular Verbs</h1>
-      <p class="subtitle">Learn English the fun way</p>
-      <button class="topic-chip" id="topicChip" title="Change topic"><Icon name="books" weight="bold" size={16} /> <span id="topicName">Verbos Irregulares</span> ▾</button>
+      <p class="subtitle" data-i18n="home.subtitle">Learn the fun way</p>
+      <button class="topic-chip" id="topicChip" data-i18n-title="home.topic_change" title="Change topic"><Icon name="books" weight="bold" size={16} /> <span id="topicName">Verbos Irregulares</span> ▾</button>
     </header>
 
     <main class="grid">
       <a href="/quick-match" class="card card--purple">
         <span class="card-icon"><Icon name="target" weight="bold" size={36} /></span>
-        <h2>Quick Match</h2>
-        <p>Multiple choice</p>
+        <h2 data-i18n="home.quick_match">Quick Match</h2>
+        <p data-i18n="home.quick_match_desc">Multiple choice</p>
       </a>
 
       <a href="/speed-challenge" class="card card--pink">
         <span class="card-icon"><Icon name="lightning" weight="bold" size={36} /></span>
-        <h2>Speed Challenge</h2>
-        <p>Race the clock</p>
+        <h2 data-i18n="home.speed_challenge">Speed Challenge</h2>
+        <p data-i18n="home.speed_challenge_desc">Race the clock</p>
       </a>
 
       <a href="/type-master" class="card card--indigo">
         <span class="card-icon"><Icon name="keyboard" weight="bold" size={36} /></span>
-        <h2>Type Master</h2>
-        <p>Type the answer</p>
+        <h2 data-i18n="home.type_master">Type Master</h2>
+        <p data-i18n="home.type_master_desc">Type the answer</p>
       </a>
 
       <a href="/memory-cards" class="card card--cyan">
         <span class="card-icon"><Icon name="cards" weight="bold" size={36} /></span>
-        <h2>Memory Cards</h2>
-        <p>Find the pairs</p>
+        <h2 data-i18n="home.memory_cards">Memory Cards</h2>
+        <p data-i18n="home.memory_cards_desc">Find the pairs</p>
       </a>
 
       <a href="/practice" class="card card--green">
         <span class="card-icon"><Icon name="infinity" weight="bold" size={36} /></span>
-        <h2>Practice</h2>
-        <p>At your own pace</p>
+        <h2 data-i18n="home.practice">Practice</h2>
+        <p data-i18n="home.practice_desc">At your own pace</p>
       </a>
 
       <a href="/scores" class="card card--gold">
         <span class="card-icon"><Icon name="trophy" weight="bold" size={36} /></span>
-        <h2>Records</h2>
-        <p>Your best scores</p>
+        <h2 data-i18n="home.records">Records</h2>
+        <p data-i18n="home.records_desc">Your best scores</p>
       </a>
 
       <a href="/universe" class="card card--universe" id="universeCard">
         <span class="card-icon"><Icon name="globe" weight="bold" size={36} /></span>
-        <h2>Universes</h2>
-        <p>Compete with your class</p>
+        <h2 data-i18n="home.universes">Universes</h2>
+        <p data-i18n="home.universes_desc">Compete with your class</p>
         <span class="universe-badge" id="universeBadge" style="display:none"></span>
       </a>
     </main>
@@ -271,6 +271,7 @@ import Icon from '../components/Icon.astro';
   import { getUniverseSession } from '../utils/supabase.ts';
   import { getActiveTopicLabel, getTopics, setActiveTopic } from '../utils/topics.ts';
   import { deleteLocalTopic } from '../utils/localTopics.ts';
+  import { t } from '../i18n/index.ts';
 
   let topicModalEl: HTMLElement | null = null;
 
@@ -290,13 +291,13 @@ import Icon from '../components/Icon.astro';
     backdrop.innerHTML = `
       <div class="topic-modal">
         <div class="topic-modal-head">
-          <h3>¿Qué quieres aprender?</h3>
-          <a href="/new-topic" class="topic-modal-new" title="Crear tema con IA">＋ Crear con IA</a>
+          <h3>${t('topic.modal_title')}</h3>
+          <a href="/new-topic" class="topic-modal-new">${t('topic.create_with_ai')}</a>
         </div>
         <div class="topic-list" id="topicList">
-          <p class="topic-modal-loading">Cargando temas…</p>
+          <p class="topic-modal-loading">${t('topic.loading')}</p>
         </div>
-        <button class="topic-modal-close" id="topicClose">Cerrar</button>
+        <button class="topic-modal-close" id="topicClose">${t('topic.close')}</button>
       </div>
     `;
     document.body.appendChild(backdrop);
@@ -311,24 +312,24 @@ import Icon from '../components/Icon.astro';
       const active = localStorage.getItem('verbGame_activeTopic') ?? 'irregular-verbs';
 
       if (!topics.length) {
-        list.innerHTML = '<p class="topic-modal-loading">No hay temas disponibles aún. <a href="/new-topic" style="color:#00f0ff">Crea uno →</a></p>';
+        list.innerHTML = `<p class="topic-modal-loading">${t('topic.empty')} <a href="/new-topic" style="color:#00f0ff">${t('topic.create_with_ai')} →</a></p>`;
         return;
       }
 
       const globalTopics = topics.filter(t => t.source !== 'local');
       const localTopics  = topics.filter(t => t.source === 'local');
 
-      function topicBtn(t: typeof topics[0]) {
-        const deleteBtn = t.source === 'local'
-          ? `<button class="topic-delete-btn" data-delete="${t.slug}" title="Eliminar tema" aria-label="Eliminar">✕</button>`
+      function topicBtn(topic: typeof topics[0]) {
+        const deleteBtn = topic.source === 'local'
+          ? `<button class="topic-delete-btn" data-delete="${topic.slug}" title="Eliminar tema" aria-label="Eliminar">✕</button>`
           : '';
         return `
           <div class="topic-row">
-            <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
-              <span class="topic-icon">${t.icon}</span>
+            <button class="topic-option ${topic.slug === active ? 'active' : ''}" data-slug="${topic.slug}">
+              <span class="topic-icon">${topic.icon}</span>
               <span class="topic-info">
-                <strong>${t.name_es}</strong>
-                <small>${t.name_en}${t.source === 'local' ? ' · local' : ''}</small>
+                <strong>${topic.name_es}</strong>
+                <small>${topic.name_en}${topic.source === 'local' ? ` · ${t('topic.local_label')}` : ''}</small>
               </span>
             </button>
             ${deleteBtn}
@@ -337,7 +338,7 @@ import Icon from '../components/Icon.astro';
 
       let html = globalTopics.map(topicBtn).join('');
       if (localTopics.length) {
-        html += `<div class="topic-section-label">Mis temas</div>`;
+        html += `<div class="topic-section-label">${t('topic.my_topics')}</div>`;
         html += localTopics.map(topicBtn).join('');
       }
       list.innerHTML = html;
@@ -366,7 +367,7 @@ import Icon from '../components/Icon.astro';
       });
     } catch {
       document.getElementById('topicList')!.innerHTML =
-        '<p class="topic-modal-loading">Error al cargar temas.</p>';
+        `<p class="topic-modal-loading">${t('topic.error')}</p>`;
     }
   }
 
