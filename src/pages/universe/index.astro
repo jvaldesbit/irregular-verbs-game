@@ -143,7 +143,7 @@ import Icon from '../../components/Icon.astro';
 <style>
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
   }
@@ -223,8 +223,8 @@ import Icon from '../../components/Icon.astro';
 
   .btn-go {
     padding: 0.5rem 1rem;
-    background: white;
-    color: #1e1b4b;
+    background: var(--cyan, #00f0ff);
+    color: #0a0f24;
     border-radius: var(--r-sm);
     font-weight: 700;
     font-size: 0.88rem;
@@ -253,7 +253,8 @@ import Icon from '../../components/Icon.astro';
   .card {
     width: 100%;
     max-width: 480px;
-    background: white;
+    background: var(--dark2, #0f1730);
+    border: 1px solid rgba(0,240,255,0.15);
     border-radius: var(--r-xl);
     padding: 2rem 1.75rem;
     box-shadow: var(--sh-lg);
@@ -268,14 +269,14 @@ import Icon from '../../components/Icon.astro';
   .card h2 {
     font-size: 1.4rem;
     font-weight: 900;
-    color: #1e1b4b;
+    color: #ffffff;
     letter-spacing: -0.02em;
     text-align: center;
   }
 
   .card-desc {
     font-size: 0.88rem;
-    color: #6b7280;
+    color: var(--muted, #8892aa);
     text-align: center;
     line-height: 1.5;
     max-width: 320px;
@@ -297,6 +298,7 @@ import Icon from '../../components/Icon.astro';
 
   .field label {
     font-size: 0.8rem;
+    color: var(--muted, #8892aa);
     font-weight: 700;
     color: #374151;
     text-transform: uppercase;
@@ -308,40 +310,40 @@ import Icon from '../../components/Icon.astro';
     font-size: 1rem;
     font-weight: 600;
     padding: 0.7rem 1rem;
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(255,255,255,0.1);
     border-radius: var(--r-md);
     outline: none;
-    color: #1e1b4b;
+    color: #ffffff;
     transition: border-color var(--t);
-    background: #f9fafb;
+    background: var(--dark3, #1a2545);
   }
 
-  .field input:focus { border-color: #667eea; background: white; }
+  .field input:focus { border-color: #00f0ff; background: var(--dark3, #1a2545); }
 
   .code-select {
     font-family: var(--font);
     font-size: 1rem;
     font-weight: 600;
     padding: 0.7rem 1rem;
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(255,255,255,0.1);
     border-radius: var(--r-md);
     outline: none;
-    color: #1e1b4b;
-    background: #f9fafb;
+    color: #ffffff;
+    background: var(--dark3, #1a2545);
     width: 100%;
     cursor: pointer;
     transition: border-color var(--t);
     appearance: auto;
   }
 
-  .code-select:focus { border-color: #667eea; background: white; }
+  .code-select:focus { border-color: #00f0ff; background: var(--dark3, #1a2545); }
 
   .error-msg {
     font-size: 0.88rem;
     font-weight: 600;
-    color: #dc2626;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    color: #f87171;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
     border-radius: var(--r-sm);
     padding: 0.6rem 0.85rem;
     text-align: center;
@@ -350,8 +352,8 @@ import Icon from '../../components/Icon.astro';
   .btn-join {
     width: 100%;
     padding: 0.9rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #00f0ff 0%, #00ffa3 100%);
+    color: #0a0f24;
     border: none;
     border-radius: var(--r-md);
     font-family: var(--font);

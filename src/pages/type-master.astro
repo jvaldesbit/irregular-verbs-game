@@ -188,7 +188,7 @@ import Icon from '../components/Icon.astro';
     const fill = document.getElementById('progressFill') as HTMLElement;
     fill.style.width = acc + '%';
     fill.style.background = acc >= 80
-      ? 'linear-gradient(90deg, #10b981, #34d399)'
+      ? 'linear-gradient(90deg, #00ffa3, #00f0ff)'
       : acc >= 60
         ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
         : 'linear-gradient(90deg, #ef4444, #f87171)';
@@ -234,7 +234,7 @@ import Icon from '../components/Icon.astro';
 <style>
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #4f46e5 0%, #7c3aed 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
   }
@@ -334,16 +334,16 @@ import Icon from '../components/Icon.astro';
     padding: 0.9rem 1.1rem;
     border: 3px solid rgba(255,255,255,0.35);
     border-radius: var(--r-md);
-    background: rgba(255,255,255,0.92);
-    color: #1e1b4b;
+    background: rgba(15,23,48,0.85);
+    color: #ffffff;
     transition: border-color var(--t), box-shadow var(--t);
     min-height: 58px;
   }
 
-  .answer-input::placeholder { color: #a5b4fc; }
-  .answer-input:focus { outline: none; border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); }
-  .answer-input.correct { border-color: #10b981; background: #ecfdf5; color: #065f46; }
-  .answer-input.wrong   { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+  .answer-input::placeholder { color: rgba(136,146,170,0.7); }
+  .answer-input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,240,255,0.2); }
+  .answer-input.correct { border-color: #00ffa3; background: rgba(0,255,163,0.1); color: #00ffa3; }
+  .answer-input.wrong   { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #fca5a5; }
 
   .submit-btn {
     font-family: var(--font);
@@ -425,7 +425,7 @@ import Icon from '../components/Icon.astro';
   }
 
   .session-card {
-    background: linear-gradient(145deg, #4f46e5, #7c3aed);
+    background: linear-gradient(145deg, #0f1730, #1a2545);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: var(--r-xl);
     padding: 2rem 1.75rem;

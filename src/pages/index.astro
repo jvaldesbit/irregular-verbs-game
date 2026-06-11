@@ -62,7 +62,7 @@ import Icon from '../components/Icon.astro';
 <style>
   .page {
     min-height: 100dvh;
-    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(145deg, #0a0f24 0%, #0f1730 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -123,37 +123,51 @@ import Icon from '../components/Icon.astro';
     padding: 1.5rem;
   }
   :global(.topic-modal) {
-    background: white; border-radius: var(--r-xl);
+    background: var(--dark2); border-radius: var(--r-xl);
+    border: 1px solid rgba(0,240,255,0.15);
     padding: 1.75rem 1.5rem 1.5rem;
     width: 100%; max-width: 420px;
     display: flex; flex-direction: column; gap: 1rem;
     box-shadow: var(--sh-lg);
   }
   :global(.topic-modal h3) {
-    font-size: 1.15rem; font-weight: 900; color: #1e1b4b; letter-spacing: -0.02em;
+    font-size: 1.15rem; font-weight: 900; color: #ffffff; letter-spacing: -0.02em;
   }
   :global(.topic-list) { display: flex; flex-direction: column; gap: 0.5rem; }
   :global(.topic-option) {
     display: flex; align-items: center; gap: 0.85rem;
     padding: 0.9rem 1rem;
-    border: 2px solid #e5e7eb; border-radius: var(--r-md);
-    cursor: pointer; background: #f9fafb;
+    border: 2px solid rgba(255,255,255,0.08); border-radius: var(--r-md);
+    cursor: pointer; background: var(--dark3);
     transition: all var(--t); text-align: left;
     font-family: var(--font);
   }
-  :global(.topic-option:hover) { border-color: #667eea; background: #f0f1ff; }
-  :global(.topic-option.active) { border-color: #667eea; background: #eef2ff; }
+  :global(.topic-option:hover) { border-color: rgba(0,240,255,0.45); background: rgba(0,240,255,0.06); }
+  :global(.topic-option.active) { border-color: var(--cyan); background: rgba(0,240,255,0.08); }
   :global(.topic-icon) { font-size: 1.5rem; line-height: 1; }
-  :global(.topic-info strong) { display: block; font-size: 0.95rem; font-weight: 800; color: #1e1b4b; }
-  :global(.topic-info small)  { font-size: 0.78rem; color: #6b7280; }
+  :global(.topic-info strong) { display: block; font-size: 0.95rem; font-weight: 800; color: #ffffff; }
+  :global(.topic-info small)  { font-size: 0.78rem; color: var(--muted); }
   :global(.topic-modal-close) {
     align-self: flex-end; padding: 0.4rem 0.9rem;
-    background: #f3f4f6; border: none; border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.1); border: none; border-radius: var(--r-sm);
     font-family: var(--font); font-size: 0.85rem; font-weight: 700;
-    color: #374151; cursor: pointer; transition: background var(--t);
+    color: var(--text); cursor: pointer; transition: background var(--t);
   }
-  :global(.topic-modal-close:hover) { background: #e5e7eb; }
-  :global(.topic-modal-loading) { text-align: center; color: #9ca3af; font-size: 0.9rem; padding: 1rem 0; }
+  :global(.topic-modal-close:hover) { background: rgba(255,255,255,0.18); }
+  :global(.topic-modal-loading) { text-align: center; color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+  :global(.topic-modal-head) { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  :global(.topic-modal-new) {
+    font-size: 0.78rem; font-weight: 800; color: #00f0ff;
+    background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.25);
+    border-radius: 99px; padding: 0.3rem 0.75rem; text-decoration: none;
+    white-space: nowrap; transition: background var(--t);
+  }
+  :global(.topic-modal-new:hover) { background: rgba(0,240,255,0.2); }
+  :global(.topic-section-label) {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--muted); padding: 0.5rem 0.25rem 0.25rem;
+  }
+  :global(.topic-local-badge) { font-size: 0.9rem; flex-shrink: 0; }
 
   .grid {
     display: grid;
@@ -198,20 +212,20 @@ import Icon from '../components/Icon.astro';
   .card h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; }
   .card p { font-size: 0.82rem; opacity: 0.88; font-weight: 500; }
 
-  .card--purple  { background: linear-gradient(135deg, #667eea, #764ba2); }
-  .card--pink    { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .card--purple  { background: linear-gradient(135deg, #00f0ff, #0099bb); }
+  .card--pink    { background: linear-gradient(135deg, #f093fb, #c77dff); }
   .card--indigo  { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
-  .card--cyan    { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
-  .card--green   { background: linear-gradient(135deg, #10b981, #059669); }
+  .card--cyan    { background: linear-gradient(135deg, #00ffa3, #00cc85); }
+  .card--green   { background: linear-gradient(135deg, #00ffa3, #00cc85); }
   .card--gold { background: linear-gradient(135deg, #f59e0b, #b45309); }
-  .card--universe { background: linear-gradient(135deg, #1e1b4b, #312e81); position: relative; }
+  .card--universe { background: linear-gradient(135deg, #0f1730, #1a2545); border: 1px solid rgba(0,240,255,0.15); position: relative; }
 
   .universe-badge {
     position: absolute;
     top: 0.6rem;
     right: 0.6rem;
-    background: #667eea;
-    color: white;
+    background: var(--cyan);
+    color: var(--dark);
     font-size: 0.65rem;
     font-weight: 800;
     padding: 0.2rem 0.5rem;
@@ -262,7 +276,10 @@ import Icon from '../components/Icon.astro';
     backdrop.className = 'topic-modal-backdrop';
     backdrop.innerHTML = `
       <div class="topic-modal">
-        <h3>¿Qué quieres aprender?</h3>
+        <div class="topic-modal-head">
+          <h3>¿Qué quieres aprender?</h3>
+          <a href="/new-topic" class="topic-modal-new" title="Crear tema con IA">＋ Crear con IA</a>
+        </div>
         <div class="topic-list" id="topicList">
           <p class="topic-modal-loading">Cargando temas…</p>
         </div>
@@ -281,19 +298,31 @@ import Icon from '../components/Icon.astro';
       const active = localStorage.getItem('verbGame_activeTopic') ?? 'irregular-verbs';
 
       if (!topics.length) {
-        list.innerHTML = '<p class="topic-modal-loading">No hay temas disponibles aún.</p>';
+        list.innerHTML = '<p class="topic-modal-loading">No hay temas disponibles aún. <a href="/new-topic" style="color:#00f0ff">Crea uno →</a></p>';
         return;
       }
 
-      list.innerHTML = topics.map(t => `
-        <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
-          <span class="topic-icon">${t.icon}</span>
-          <span class="topic-info">
-            <strong>${t.name_es}</strong>
-            <small>${t.name_en}</small>
-          </span>
-        </button>
-      `).join('');
+      const globalTopics = topics.filter(t => t.source !== 'local');
+      const localTopics  = topics.filter(t => t.source === 'local');
+
+      function topicBtn(t: typeof topics[0]) {
+        return `
+          <button class="topic-option ${t.slug === active ? 'active' : ''}" data-slug="${t.slug}">
+            <span class="topic-icon">${t.icon}</span>
+            <span class="topic-info">
+              <strong>${t.name_es}</strong>
+              <small>${t.name_en}${t.source === 'local' ? ' · local' : ''}</small>
+            </span>
+            ${t.source === 'local' ? '<span class="topic-local-badge">📱</span>' : ''}
+          </button>`;
+      }
+
+      let html = globalTopics.map(topicBtn).join('');
+      if (localTopics.length) {
+        html += `<div class="topic-section-label">Mis temas</div>`;
+        html += localTopics.map(topicBtn).join('');
+      }
+      list.innerHTML = html;
 
       list.querySelectorAll<HTMLButtonElement>('.topic-option').forEach(btn => {
         btn.onclick = () => {
@@ -315,8 +344,10 @@ import Icon from '../components/Icon.astro';
   }
 
   function init() {
+    const badge = document.getElementById('universeBadge') as HTMLElement | null;
+    if (!badge) return; // not on home page
+
     const session = getUniverseSession();
-    const badge = document.getElementById('universeBadge') as HTMLElement;
     const card  = document.getElementById('universeCard') as HTMLAnchorElement;
     if (session) {
       badge.textContent = session.name;
@@ -329,6 +360,9 @@ import Icon from '../components/Icon.astro';
 
     updateTopicBadge();
     document.getElementById('topicChip')!.onclick = openTopicModal;
+
+    // Triggered by Layout.astro after name is saved when no topic is set
+    window.addEventListener('alunas:openTopicPicker', openTopicModal, { once: true });
   }
 
   document.addEventListener('astro:page-load', init);

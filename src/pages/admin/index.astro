@@ -107,6 +107,23 @@ const adminIcons = {
         </div>
       </section>
 
+      <!-- Gemini config panel -->
+      <section class="panel" id="geminiPanel">
+        <div class="panel-header">
+          <h2><Icon name="sparkle" weight="bold" size={18} /> Gemini API</h2>
+          <button class="btn-add" id="btnSaveGemini">Guardar</button>
+        </div>
+        <div class="r2-form">
+          <div class="r2-field">
+            <label>API Key</label>
+            <input type="password" id="geminiApiKey" placeholder="AIza…" class="r2-inp" />
+          </div>
+          <p style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin:0">Necesaria para que los usuarios puedan crear temas con IA desde imágenes.</p>
+          <div class="r2-msg success" id="geminiSaveOk"  style="display:none">✓ Guardado!</div>
+          <div class="r2-msg error"   id="geminiSaveErr" style="display:none"></div>
+        </div>
+      </section>
+
       <!-- R2 config panel -->
       <section class="panel" id="r2Panel">
         <div class="panel-header">
@@ -195,18 +212,28 @@ const adminIcons = {
   </div>
 </Layout>
 
+<!-- Pass server-side icon SVGs to client as a global (define:vars forces inline, can't have imports) -->
 <script define:vars={{ adminIcons }}>
+  (window as any).__adminIcons = adminIcons;
+</script>
+
+<script>
   import {
     adminLogin, adminLogout, getAdminSession,
     getAllUniverses, createUniverse, deleteUniverse, getAllScores,
     getAppSessions,
   } from '../../utils/supabase.ts';
   import {
+    loadGeminiConfig, saveGeminiConfig,
+  } from '../../utils/gemini.ts';
+  import {
     getTopics, createTopicMeta, deleteTopicMeta,
   } from '../../utils/topics.ts';
   import {
     uploadTopicJson, deleteTopicJson, saveR2Config, loadR2Config,
   } from '../../utils/r2.ts';
+
+  const adminIcons: Record<string, string> = (window as any).__adminIcons ?? {};
 
   const GAME_LABELS: Record<string, string> = {
     'quick-match': 'Quick', 'survival': 'Survival', 'endless': 'Endless',
@@ -232,14 +259,26 @@ const adminIcons = {
     loadTopics();
     loadVisitors();
     loadR2Form();
+    loadGeminiForm();
   }
 
   // ── Login ──────────────────────────────────────────────────────────────────
 
   async function init() {
-    const session = await getAdminSession();
-    session ? showDash() : showLogin();
+    try {
+      const session = await getAdminSession();
+      session ? showDash() : showLogin();
+    } catch (e: any) {
+      showLogin();
+      const errorEl = document.getElementById('loginError') as HTMLElement;
+      if (errorEl) {
+        errorEl.textContent = `Init error: ${e?.message ?? e}`;
+        errorEl.style.display = 'block';
+      }
+    }
+
     bindR2Events();
+    bindGeminiEvents();
 
     const form      = document.getElementById('loginForm') as HTMLFormElement;
     const errorEl   = document.getElementById('loginError') as HTMLElement;
@@ -256,16 +295,22 @@ const adminIcons = {
       btnText.style.display = 'none';
       btnLoad.style.display = 'inline';
 
-      const result = await adminLogin(email, password);
-
-      loginBtn.disabled = false;
-      btnText.style.display = 'inline';
-      btnLoad.style.display = 'none';
-
-      if (result.ok) {
-        showDash();
-      } else {
-        errorEl.textContent = result.error ?? 'Sign in failed.';
+      try {
+        const result = await adminLogin(email, password);
+        loginBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoad.style.display = 'none';
+        if (result.ok) {
+          showDash();
+        } else {
+          errorEl.textContent = result.error ?? 'Sign in failed.';
+          errorEl.style.display = 'block';
+        }
+      } catch (e: any) {
+        loginBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoad.style.display = 'none';
+        errorEl.textContent = `Error: ${e?.message ?? 'Unexpected error'}`;
         errorEl.style.display = 'block';
       }
     };
@@ -368,6 +413,35 @@ const adminIcons = {
         errEl.style.display = 'block';
         progressEl.style.display = 'none';
         btnCreate.disabled = false;
+      }
+    };
+  }
+
+  // ── Gemini config ──────────────────────────────────────────────────────────
+
+  async function loadGeminiForm() {
+    try {
+      const cfg = await loadGeminiConfig();
+      if (cfg?.apiKey) {
+        (document.getElementById('geminiApiKey') as HTMLInputElement).value = cfg.apiKey;
+      }
+    } catch { /* no config yet */ }
+  }
+
+  function bindGeminiEvents() {
+    document.getElementById('btnSaveGemini')!.onclick = async () => {
+      const key   = (document.getElementById('geminiApiKey') as HTMLInputElement).value.trim();
+      const okEl  = document.getElementById('geminiSaveOk')  as HTMLElement;
+      const errEl = document.getElementById('geminiSaveErr') as HTMLElement;
+      try {
+        await saveGeminiConfig(key);
+        okEl.style.display  = 'block';
+        errEl.style.display = 'none';
+        setTimeout(() => { okEl.style.display = 'none'; }, 2500);
+      } catch (e: any) {
+        errEl.textContent   = e.message ?? 'Error al guardar.';
+        errEl.style.display = 'block';
+        okEl.style.display  = 'none';
       }
     };
   }
@@ -692,7 +766,7 @@ const adminIcons = {
     transition: border-color var(--t);
   }
 
-  .field input:focus { border-color: #667eea; }
+  .field input:focus { border-color: #00f0ff; }
 
   .login-error {
     font-size: 0.85rem;
@@ -708,8 +782,8 @@ const adminIcons = {
   .btn-login {
     width: 100%;
     padding: 0.85rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: linear-gradient(135deg, #00f0ff, #00ffa3);
+    color: #0a0f24;
     border: none;
     border-radius: var(--r-md);
     font-family: var(--font);
@@ -805,8 +879,8 @@ const adminIcons = {
 
   .btn-add {
     padding: 0.4rem 0.85rem;
-    background: #667eea;
-    color: white;
+    background: #00f0ff;
+    color: #0a0f24;
     border: none;
     border-radius: var(--r-sm);
     font-family: var(--font);
@@ -840,7 +914,7 @@ const adminIcons = {
     flex-wrap: wrap;
     gap: 0.6rem;
     align-items: flex-start;
-    background: rgba(102,126,234,0.07);
+    background: rgba(0,240,255,0.05);
   }
 
   .code-inp, .name-inp {
@@ -856,7 +930,7 @@ const adminIcons = {
     transition: border-color var(--t);
   }
 
-  .code-inp:focus, .name-inp:focus { border-color: #667eea; }
+  .code-inp:focus, .name-inp:focus { border-color: #00f0ff; }
   .code-inp { width: 120px; text-transform: uppercase; letter-spacing: 0.08em; }
   .name-inp { flex: 1; min-width: 180px; }
 
@@ -864,8 +938,8 @@ const adminIcons = {
 
   .btn-save {
     padding: 0.6rem 1.1rem;
-    background: #10b981;
-    color: white;
+    background: #00ffa3;
+    color: #0a0f24;
     border: none;
     border-radius: var(--r-sm);
     font-family: var(--font);
@@ -1071,18 +1145,18 @@ const adminIcons = {
     color: white; outline: none;
     transition: border-color var(--t);
   }
-  .r2-inp:focus { border-color: #667eea; }
+  .r2-inp:focus { border-color: #00f0ff; }
   .r2-msg {
     font-size: 0.82rem; font-weight: 700;
     padding: 0.45rem 0.75rem; border-radius: var(--r-sm);
   }
-  .r2-msg.success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+  .r2-msg.success { background: rgba(0,255,163,0.12); color: #00ffa3; }
   .r2-msg.error   { background: rgba(239,68,68,0.12);  color: #f87171; }
 
   .visitors-badge {
     display: inline-block;
-    background: rgba(102,126,234,0.25);
-    color: #a5b4fc;
+    background: rgba(0,240,255,0.15);
+    color: #00f0ff;
     font-size: 0.72rem;
     font-weight: 800;
     padding: 0.15rem 0.55rem;

@@ -1,4 +1,6 @@
 import { supabase } from './supabase';
+import { getLocalTopics, loadLocalPayload } from './localTopics';
+import type { LocalTopicMeta } from './localTopics';
 
 export interface TopicMeta {
   id: string;
@@ -9,6 +11,7 @@ export interface TopicMeta {
   sort_order: number;
   payload_url: string;
   created_at: string;
+  source?: 'global' | 'local';
 }
 
 export interface TopicField {
@@ -44,10 +47,24 @@ export function getActiveTopicLabel(): { name: string; icon: string } {
   };
 }
 
-export function setActiveTopic(meta: TopicMeta): void {
+export function setActiveTopic(meta: TopicMeta | LocalTopicMeta): void {
   localStorage.setItem(ACTIVE_SLUG_KEY, meta.slug);
   localStorage.setItem(ACTIVE_NAME_KEY, meta.name_es);
   localStorage.setItem(ACTIVE_ICON_KEY, meta.icon);
+}
+
+function localMetaToTopicMeta(l: LocalTopicMeta): TopicMeta {
+  return {
+    id: `local:${l.slug}`,
+    slug: l.slug,
+    name_en: l.name_en,
+    name_es: l.name_es,
+    icon: l.icon,
+    sort_order: 9999,
+    payload_url: '',
+    created_at: l.created_at,
+    source: 'local',
+  };
 }
 
 export async function getTopics(): Promise<TopicMeta[]> {
@@ -55,10 +72,21 @@ export async function getTopics(): Promise<TopicMeta[]> {
     .from('topics')
     .select('*')
     .order('sort_order', { ascending: true });
-  return data ?? [];
+
+  const global = (data ?? []).map(t => ({ ...t, source: 'global' as const }));
+  const local  = getLocalTopics().map(localMetaToTopicMeta);
+
+  return [...global, ...local];
 }
 
 export async function loadTopicBySlug(slug: string): Promise<LoadedTopic | null> {
+  // Check local cache first
+  const localPayload = loadLocalPayload(slug);
+  if (localPayload) {
+    const localMeta = getLocalTopics().find(t => t.slug === slug);
+    if (localMeta) return { meta: localMetaToTopicMeta(localMeta), payload: localPayload };
+  }
+
   const { data: meta } = await supabase
     .from('topics')
     .select('*')
@@ -71,7 +99,7 @@ export async function loadTopicBySlug(slug: string): Promise<LoadedTopic | null>
   if (!res.ok) throw new Error(`R2 fetch failed (${res.status}): ${meta.payload_url}`);
   const payload: TopicPayload = await res.json();
 
-  return { meta, payload };
+  return { meta: { ...meta, source: 'global' }, payload };
 }
 
 export async function loadActiveTopic(): Promise<LoadedTopic | null> {
