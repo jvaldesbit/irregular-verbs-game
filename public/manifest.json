@@ -1,7 +1,7 @@
 {
-  "name": "alunas.co",
-  "short_name": "alunas",
-  "description": "alunas.co — Learn the fun way",
+  "name": "Alunas",
+  "short_name": "Alunas",
+  "description": "Alunas — Learn the fun way",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
@@ -10,13 +10,13 @@
   "lang": "es",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/logo_pwa.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/logo_pwa.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
