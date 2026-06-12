@@ -5,12 +5,22 @@ import Icon from '../components/Icon.astro';
 
 <Layout title="alunas.co">
   <div class="page">
-    <header class="page-header">
-      <div class="logo" id="topicIcon">🎮</div>
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <img src="/logo.svg" alt="alunas" class="navbar-logo" />
+        <span class="navbar-name">alunas</span>
+      </div>
+      <button class="topic-chip" id="topicChip" data-i18n-title="home.topic_change" title="Change topic">
+        <Icon name="books" weight="bold" size={15} />
+        <span id="topicName">Verbos Irregulares</span>
+        <svg class="chip-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-icon" id="topicIcon">🎮</div>
       <h1 id="topicTitle">Irregular Verbs</h1>
-      <p class="subtitle" data-i18n="home.subtitle">Learn the fun way</p>
-      <button class="topic-chip" id="topicChip" data-i18n-title="home.topic_change" title="Change topic"><Icon name="books" weight="bold" size={16} /> <span id="topicName">Verbos Irregulares</span> ▾</button>
-    </header>
+    </div>
 
     <main class="grid">
       <a href="/quick-match" class="card card--purple">
@@ -66,19 +76,96 @@ import Icon from '../components/Icon.astro';
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: calc(env(safe-area-inset-top) + 2rem) 1.5rem 5rem;
+    padding-bottom: 5rem;
     gap: 2rem;
   }
 
-  .page-header {
-    text-align: center;
+  /* ── Navbar ───────────────────────────────────────────────────────────────── */
+  .navbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: calc(env(safe-area-inset-top) + 0.7rem) 1.25rem 0.7rem;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+  }
+
+  .navbar-logo {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+
+  .navbar-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: white;
+    line-height: 1;
+    display: none;
+  }
+
+  .topic-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem 0.4rem 0.65rem;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 99px;
+    color: rgba(255,255,255,0.9);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t), border-color var(--t);
+    flex: 1;
+    min-width: 0;
+    justify-content: space-between;
+  }
+
+  .topic-chip:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.45);
     color: white;
   }
 
-  .logo {
+  .topic-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chip-chevron {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* ── Hero ─────────────────────────────────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    color: white;
+    padding: 1.5rem 1.5rem 0;
+  }
+
+  .hero-icon {
     font-size: 3.5rem;
     line-height: 1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
   }
 
   h1 {
@@ -87,32 +174,6 @@ import Icon from '../components/Icon.astro';
     letter-spacing: -0.03em;
     text-shadow: 0 2px 12px rgba(0,0,0,0.2);
   }
-
-  .subtitle {
-    font-size: 1.05rem;
-    opacity: 0.85;
-    margin-top: 0.3rem;
-    font-weight: 500;
-  }
-
-  .topic-chip {
-    margin-top: 0.6rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0.9rem;
-    background: rgba(255,255,255,0.18);
-    border: 1.5px solid rgba(255,255,255,0.32);
-    border-radius: 99px;
-    color: white;
-    font-family: var(--font);
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background var(--t), border-color var(--t);
-    backdrop-filter: blur(8px);
-  }
-  .topic-chip:hover { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.55); }
 
   /* Topic picker modal — :global() needed because element is created dynamically in JS */
   :global(.topic-modal-backdrop) {
@@ -187,6 +248,8 @@ import Icon from '../components/Icon.astro';
     gap: 1rem;
     width: 100%;
     max-width: 700px;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
   }
 
   .card {
@@ -253,17 +316,22 @@ import Icon from '../components/Icon.astro';
   @media (min-width: 600px) {
     .grid { grid-template-columns: repeat(3, 1fr); max-width: 860px; }
     h1 { font-size: 3rem; }
-    .logo { font-size: 4rem; }
+    .hero-icon { font-size: 4rem; }
     .card { min-height: 160px; padding: 2rem 1.5rem; }
     .card-icon { font-size: 2.8rem; }
     .card h2 { font-size: 1.25rem; }
     .card p { font-size: 0.9rem; }
+    .navbar { padding-left: 1.75rem; padding-right: 1.75rem; }
+    .navbar-name { display: block; font-size: 1.4rem; }
+    .navbar-logo { height: 32px; }
+    .topic-chip { flex: none; max-width: 220px; font-size: 0.85rem; justify-content: flex-start; }
   }
 
   @media (min-width: 1024px) {
-    .page { padding: 2.5rem 2rem 5rem; gap: 2.5rem; }
+    .page { gap: 2.5rem; }
     .grid { gap: 1.25rem; max-width: 960px; }
     .card { min-height: 180px; }
+    .hero { padding-top: 2rem; }
   }
 </style>
 
