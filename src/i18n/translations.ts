@@ -10,6 +10,11 @@ export const translations: Record<Lang, Dict> = {
     // ── Home ──
     'home.subtitle': 'Learn the fun way',
     'home.topic_change': 'Change topic',
+    'home.install': 'Install app',
+    'home.install_ios_title': 'Add to Home Screen',
+    'home.install_ios_1': 'Tap the <strong>Share</strong> button at the bottom of Safari',
+    'home.install_ios_2': 'Tap <strong>Add to Home Screen</strong>',
+    'home.install_ios_3': 'Tap <strong>Add</strong> to confirm',
     'home.quick_match': 'Quick Match',
     'home.quick_match_desc': 'Multiple choice',
     'home.speed_challenge': 'Speed Challenge',
@@ -218,6 +223,11 @@ export const translations: Record<Lang, Dict> = {
     // ── Home ──
     'home.subtitle': 'Aprende de forma divertida',
     'home.topic_change': 'Cambiar tema',
+    'home.install': 'Instalar app',
+    'home.install_ios_title': 'Agregar a pantalla de inicio',
+    'home.install_ios_1': 'Toca el botón <strong>Compartir</strong> en la parte inferior de Safari',
+    'home.install_ios_2': 'Toca <strong>Agregar a pantalla de inicio</strong>',
+    'home.install_ios_3': 'Toca <strong>Agregar</strong> para confirmar',
     'home.quick_match': 'Quick Match',
     'home.quick_match_desc': 'Selección múltiple',
     'home.speed_challenge': 'Speed Challenge',
