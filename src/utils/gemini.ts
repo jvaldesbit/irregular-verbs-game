@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from './supabase';
 import type { TopicPayload } from './topics';
 
@@ -14,48 +13,6 @@ export interface GeminiInvalidResult {
 }
 
 export type GeminiResult = GeminiTopicResult | GeminiInvalidResult;
-
-async function getGeminiKey(): Promise<string> {
-  const { data, error } = await supabase
-    .from('app_config')
-    .select('value')
-    .eq('key', 'gemini_api_key')
-    .maybeSingle();
-
-  if (error || !data?.value) throw new Error('Gemini API key not configured. Add it in the admin panel.');
-  return data.value;
-}
-
-const EXTRACT_PROMPT = `You are an educational content extractor. Analyze this image or document and extract structured learning data suitable for flashcard-style study.
-
-Return ONLY a valid JSON object — no markdown, no explanation, just raw JSON — in this exact format:
-
-{
-  "valid": true,
-  "meta": {
-    "name_en": "Topic name in English (2-4 words)",
-    "name_es": "Topic name in Spanish (2-4 words)",
-    "icon": "single relevant emoji",
-    "slug": "kebab-case-slug-max-30-chars"
-  },
-  "payload": {
-    "fields": [
-      { "key": "snake_case_key", "label_en": "Label in English", "label_es": "Label in Spanish", "enabled": true }
-    ],
-    "items": [
-      { "field_key_1": "value", "field_key_2": "value" }
-    ]
-  }
-}
-
-Rules:
-- Extract at minimum 5 items (more is better — capture everything visible)
-- Every item must contain ALL field keys defined in fields[]
-- Fields represent the columns or categories of the data (e.g. base form, past tense, translation)
-- The first field should be the "question" side of the flashcard
-- IMPORTANT: Ignore any pronunciation guides, phonetic transcriptions, or IPA notation present in the image — do NOT include them as fields or values. Written pronunciation is not valid learning content.
-- If the image does not contain educational content suitable for flashcard learning, return:
-  { "valid": false, "reason": "explanation in Spanish of why it cannot be used" }`;
 
 export async function loadGeminiConfig(): Promise<{ apiKey: string } | null> {
   const { data } = await supabase
@@ -74,12 +31,8 @@ export async function saveGeminiConfig(apiKey: string): Promise<void> {
 }
 
 export async function extractTopicFromFile(file: File): Promise<GeminiResult> {
-  const apiKey = await getGeminiKey();
-  const genAI  = new GoogleGenerativeAI(apiKey);
-  const model  = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
   const arrayBuffer = await file.arrayBuffer();
-  const bytes       = new Uint8Array(arrayBuffer);
+  const bytes = new Uint8Array(arrayBuffer);
   let binary = '';
   const CHUNK = 8192;
   for (let i = 0; i < bytes.length; i += CHUNK) {
@@ -87,19 +40,23 @@ export async function extractTopicFromFile(file: File): Promise<GeminiResult> {
   }
   const base64 = btoa(binary);
 
-  const result = await model.generateContent([
-    { inlineData: { data: base64, mimeType: file.type as any } },
-    EXTRACT_PROMPT,
-  ]);
+  const FUNCTION_URL = 'https://fjifxqxdjckxutmoqkmg.supabase.co/functions/v1/extract-topic';
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqaWZ4cXhkamNreHV0bW9xa21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MjI2MjcsImV4cCI6MjA5MjI5ODYyN30.3xA4l7oPkNpel8cTz_26nMqhyZxduMPrmv6Fpa8RLc0';
 
-  const text = result.response.text().trim();
+  const res = await fetch(FUNCTION_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ANON_KEY}`,
+    },
+    body: JSON.stringify({ base64, mimeType: file.type }),
+  });
 
-  // Strip markdown code fences if present
-  const json = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const data = await res.json() as any;
 
-  try {
-    return JSON.parse(json) as GeminiResult;
-  } catch {
-    throw new Error('Gemini devolvió una respuesta inválida. Intenta con otra imagen.');
+  if (!res.ok) {
+    throw new Error(data?.error ?? `Server error ${res.status}`);
   }
+
+  return data as GeminiResult;
 }
