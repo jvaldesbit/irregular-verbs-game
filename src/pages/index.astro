@@ -20,6 +20,23 @@ import Icon from '../components/Icon.astro';
     <div class="hero">
       <div class="hero-icon" id="topicIcon">🎮</div>
       <h1 id="topicTitle">Irregular Verbs</h1>
+      <button class="install-btn" id="installBtn" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="home.install">Install app</span>
+      </button>
+    </div>
+
+    <!-- iOS install instructions sheet -->
+    <div class="ios-sheet" id="iosSheet" style="display:none" aria-hidden="true">
+      <div class="ios-sheet-inner">
+        <button class="ios-sheet-close" id="iosSheetClose" aria-label="Close">✕</button>
+        <p class="ios-sheet-title" data-i18n="home.install_ios_title">Add to Home Screen</p>
+        <ol class="ios-steps">
+          <li><span class="ios-step-icon">⬆️</span> <span data-i18n-html="home.install_ios_1">Tap the <strong>Share</strong> button at the bottom of Safari</span></li>
+          <li><span class="ios-step-icon">➕</span> <span data-i18n-html="home.install_ios_2">Tap <strong>Add to Home Screen</strong></span></li>
+          <li><span class="ios-step-icon">✅</span> <span data-i18n-html="home.install_ios_3">Tap <strong>Add</strong> to confirm</span></li>
+        </ol>
+      </div>
     </div>
 
     <main class="grid">
@@ -174,6 +191,94 @@ import Icon from '../components/Icon.astro';
     letter-spacing: -0.03em;
     text-shadow: 0 2px 12px rgba(0,0,0,0.2);
   }
+
+  .install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    padding: 0.5rem 1.1rem;
+    background: rgba(0,240,255,0.12);
+    border: 1.5px solid rgba(0,240,255,0.35);
+    border-radius: 99px;
+    color: #00f0ff;
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--t), border-color var(--t), transform var(--t);
+  }
+
+  .install-btn:hover {
+    background: rgba(0,240,255,0.22);
+    border-color: rgba(0,240,255,0.65);
+    transform: translateY(-2px);
+  }
+
+  /* iOS instructions sheet */
+  .ios-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(10,15,36,0.7);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .ios-sheet-inner {
+    width: 100%;
+    max-width: 480px;
+    background: #0f1730;
+    border: 1px solid rgba(0,240,255,0.2);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: 1.5rem 1.5rem calc(env(safe-area-inset-bottom) + 1.5rem);
+    position: relative;
+  }
+
+  .ios-sheet-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 99px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ios-sheet-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 1.25rem;
+  }
+
+  .ios-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ios-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.5;
+  }
+
+  .ios-step-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .ios-steps strong { color: white; font-weight: 800; }
 
   /* Topic picker modal — :global() needed because element is created dynamically in JS */
   :global(.topic-modal-backdrop) {
@@ -444,6 +549,57 @@ import Icon from '../components/Icon.astro';
     topicModalEl = null;
   }
 
+  // ── PWA install ───────────────────────────────────────────────────────────────
+  let deferredPrompt: any = null;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || (navigator as any).standalone === true;
+
+  if (!isStandalone) {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
+
+    if (isIOS) {
+      // Show button immediately on iOS Safari
+      const btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    } else {
+      // Android/Chrome: wait for browser prompt
+      window.addEventListener('beforeinstallprompt', (e: Event) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'inline-flex';
+      });
+    }
+  }
+
+  function initInstallBtn() {
+    const btn = document.getElementById('installBtn');
+    const sheet = document.getElementById('iosSheet');
+    const sheetClose = document.getElementById('iosSheetClose');
+
+    btn?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          btn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else if (sheet) {
+        sheet.style.display = 'flex';
+        sheet.setAttribute('aria-hidden', 'false');
+      }
+    });
+
+    sheetClose?.addEventListener('click', () => {
+      if (sheet) { sheet.style.display = 'none'; sheet.setAttribute('aria-hidden', 'true'); }
+    });
+
+    sheet?.addEventListener('click', (e) => {
+      if (e.target === sheet) { sheet.style.display = 'none'; sheet.setAttribute('aria-hidden', 'true'); }
+    });
+  }
+
   function init() {
     const badge = document.getElementById('universeBadge') as HTMLElement | null;
     if (!badge) return; // not on home page
@@ -461,6 +617,7 @@ import Icon from '../components/Icon.astro';
 
     updateTopicBadge();
     document.getElementById('topicChip')!.onclick = openTopicModal;
+    initInstallBtn();
 
     // Triggered by Layout.astro after name is saved when no topic is set
     window.addEventListener('alunas:openTopicPicker', openTopicModal, { once: true });
